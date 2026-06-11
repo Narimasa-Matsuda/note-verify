@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LumiWhite｜うるおい透明感ケア プレミアム歯みがき</title>
+<meta name="description" content="LumiWhite（ルミホワイト）は、ホワイトニングケア・口臭ケア・低刺激にこだわったプレミアム歯みがき。透明感のある毎日の口元へ。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =========================================================
+   THEME: "LumiWhite Frost" — Arctic Frost を土台にした
+   プレミアム歯みがき専用テーマ（トークン化）
+   ========================================================= */
+:root{
+  /* --- Core palette (Arctic Frost 由来) --- */
+  --ice-blue:#d4e4f7;        /* Light backgrounds / highlights */
+  --steel-blue:#4a6fa5;      /* Primary accent */
+  --silver:#c0c0c0;          /* Metallic accent */
+  --crisp-white:#fafafa;     /* Clean background / text */
+
+  /* --- Extended LumiWhite tokens --- */
+  --aqua-mint:#5fc7c7;       /* ミント/清潔感アクセント */
+  --aqua-mint-deep:#2f9d9d;
+  --frost-50:#f4f9ff;
+  --frost-100:#e9f2fb;
+  --frost-200:#d4e4f7;
+  --ink-900:#1d2a3a;         /* 主要テキスト（濃紺グレー） */
+  --ink-700:#3a4a5e;
+  --ink-500:#5d6b7e;
+  --gold:#c8a86a;            /* 上質さの差し色 */
+  --gold-soft:#e7d6b3;
+  --cta:#ff7a59;             /* CTA：暖色で目立たせる */
+  --cta-deep:#f25d3a;
+
+  /* --- Semantic tokens --- */
+  --bg:var(--crisp-white);
+  --bg-alt:var(--frost-50);
+  --surface:#ffffff;
+  --text:var(--ink-900);
+  --text-soft:var(--ink-500);
+  --primary:var(--steel-blue);
+  --accent:var(--aqua-mint);
+
+  /* --- Type scale --- */
+  --font-head:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --font-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --font-serif:"Cormorant Garamond",serif;
+  --fs-hero:clamp(2.2rem,6vw,4rem);
+  --fs-h2:clamp(1.6rem,4vw,2.6rem);
+  --fs-h3:clamp(1.15rem,2.4vw,1.5rem);
+  --fs-lead:clamp(1rem,2.2vw,1.2rem);
+  --fs-body:1rem;
+  --fs-small:.86rem;
+
+  /* --- Shape & shadow --- */
+  --radius:18px;
+  --radius-lg:28px;
+  --radius-pill:999px;
+  --shadow-sm:0 4px 16px rgba(74,111,165,.10);
+  --shadow:0 16px 40px rgba(29,42,58,.12);
+  --shadow-lg:0 30px 70px rgba(29,42,58,.18);
+  --ring:0 0 0 1px rgba(74,111,165,.12);
+  --maxw:1140px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:var(--bg);
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{max-width:100%}
+a{color:inherit;text-decoration:none}
+section{position:relative}
+.container{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+
+/* === Buttons === */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  font-family:var(--font-head);font-weight:700;
+  padding:1.05rem 2rem;border-radius:var(--radius-pill);
+  border:none;cursor:pointer;font-size:1.05rem;letter-spacing:.02em;
+  transition:transform .2s ease,box-shadow .2s ease,filter .2s ease;
+  text-align:center;line-height:1.3;
+}
+.btn-cta{
+  color:#fff;
+  background:linear-gradient(135deg,var(--cta),var(--cta-deep));
+  box-shadow:0 14px 30px rgba(242,93,58,.38);
+}
+.btn-cta:hover{transform:translateY(-3px);box-shadow:0 20px 40px rgba(242,93,58,.46)}
+.btn-ghost{
+  background:#fff;color:var(--primary);
+  box-shadow:var(--shadow-sm);border:1px solid var(--frost-200);
+}
+.btn-ghost:hover{transform:translateY(-2px)}
+.btn-block{display:flex;width:100%}
+
+/* === Header === */
+.site-header{
+  position:fixed;inset:0 0 auto 0;z-index:50;
+  backdrop-filter:saturate(140%) blur(12px);
+  background:rgba(250,250,250,.78);
+  border-bottom:1px solid rgba(212,228,247,.7);
+  transition:box-shadow .3s ease;
+}
+.site-header.scrolled{box-shadow:var(--shadow-sm)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:var(--font-head);font-weight:900;font-size:1.3rem;letter-spacing:.02em}
+.brand .lumi{color:var(--primary)}
+.brand .white{color:var(--aqua-mint-deep)}
+.brand-mark{width:34px;height:34px;flex:0 0 auto}
+.nav-links{display:flex;gap:1.6rem;align-items:center}
+.nav-links a{font-size:.92rem;color:var(--ink-700);font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--primary)}
+.nav-cta{padding:.6rem 1.3rem;font-size:.9rem}
+.nav-toggle{display:none}
+@media(max-width:860px){
+  .nav-links a:not(.nav-cta){display:none}
+}
+
+/* === FV / Hero === */
+.hero{
+  padding:120px 0 70px;
+  background:
+    radial-gradient(1200px 600px at 78% -8%,var(--frost-100),transparent 60%),
+    radial-gradient(900px 500px at 10% 110%,#e6f7f6,transparent 55%),
+    linear-gradient(180deg,#ffffff, var(--frost-50));
+  overflow:hidden;
+}
+.hero-grid{
+  display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:#fff;border:1px solid var(--frost-200);
+  color:var(--aqua-mint-deep);font-weight:700;font-size:.82rem;
+  padding:.45rem 1rem;border-radius:var(--radius-pill);
+  box-shadow:var(--shadow-sm);margin-bottom:1.4rem;
+}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--aqua-mint);box-shadow:0 0 0 4px rgba(95,199,199,.25)}
+.hero h1{
+  font-family:var(--font-head);font-weight:900;
+  font-size:var(--fs-hero);line-height:1.18;letter-spacing:.01em;
+  color:var(--ink-900);margin-bottom:1.1rem;
+}
+.hero h1 .hl{
+  background:linear-gradient(transparent 62%, rgba(95,199,199,.38) 62%);
+  padding:0 .1em;
+}
+.hero h1 .grad{
+  background:linear-gradient(120deg,var(--steel-blue),var(--aqua-mint-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-lead{font-size:var(--fs-lead);color:var(--ink-700);max-width:30em;margin-bottom:1.8rem}
+.hero-cta-row{display:flex;gap:.9rem;flex-wrap:wrap;align-items:center}
+.hero-note{display:flex;gap:1.3rem;margin-top:1.4rem;flex-wrap:wrap}
+.hero-note span{font-size:.85rem;color:var(--ink-500);display:flex;align-items:center;gap:.4rem}
+.check{color:var(--aqua-mint-deep);font-weight:900}
+.price-flash{
+  margin-top:1.6rem;display:inline-flex;align-items:baseline;gap:.6rem;
+  background:#fff;border:1px dashed var(--cta);border-radius:var(--radius);
+  padding:.7rem 1.1rem;box-shadow:var(--shadow-sm);
+}
+.price-flash .lbl{font-size:.8rem;color:var(--cta-deep);font-weight:700}
+.price-flash .yen{font-family:var(--font-head);font-weight:900;font-size:1.7rem;color:var(--cta-deep)}
+.price-flash .yen small{font-size:.7rem}
+.price-flash .was{font-size:.8rem;color:var(--ink-500);text-decoration:line-through}
+
+/* === Product visual (CSS bottle) === */
+.hero-visual{position:relative;display:flex;justify-content:center;align-items:center;min-height:420px}
+.glow{
+  position:absolute;width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(95,199,199,.35),rgba(212,228,247,.18) 55%,transparent 70%);
+  filter:blur(6px);z-index:0;animation:pulse 6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.07);opacity:1}}
+
+/* Tube/bottle built with divs+gradients */
+.bottle{position:relative;z-index:2;width:170px;height:380px;transform:rotate(-6deg);filter:drop-shadow(0 30px 40px rgba(29,42,58,.25))}
+.bottle .cap{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:78px;height:46px;border-radius:12px 12px 6px 6px;
+  background:linear-gradient(180deg,#dfe9f4,#aebfd2 60%,#8ea3bd);
+  box-shadow:inset 0 -4px 6px rgba(0,0,0,.12),inset 0 3px 4px rgba(255,255,255,.7);
+}
+.bottle .cap::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.0) 0 4px,rgba(0,0,0,.05) 4px 6px);
+}
+.bottle .neck{
+  position:absolute;top:40px;left:50%;transform:translateX(-50%);
+  width:60px;height:18px;background:linear-gradient(180deg,#c9d6e6,#aebfd2);border-radius:4px;
+}
+.bottle .body{
+  position:absolute;top:54px;left:50%;transform:translateX(-50%);
+  width:150px;height:312px;border-radius:30px 30px 60px 60px;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.85),rgba(255,255,255,.1) 38%,transparent 42%),
+    linear-gradient(160deg,#ffffff,#eef6ff 55%,#dfeefb);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset -10px 0 24px rgba(74,111,165,.10),inset 8px 0 18px rgba(255,255,255,.8);
+  overflow:hidden;
+}
+.bottle .body::before{
+  content:"";position:absolute;left:18px;top:18px;width:16px;height:230px;border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.2));
+}
+.label{
+  position:absolute;top:96px;left:50%;transform:translateX(-50%);
+  width:120px;text-align:center;color:var(--ink-900);
+}
+.label .lw{font-family:var(--font-serif);font-weight:700;font-size:1.55rem;letter-spacing:.04em;line-height:1;color:var(--steel-blue)}
+.label .lw em{font-style:normal;color:var(--aqua-mint-deep)}
+.label .tag{font-size:.5rem;letter-spacing:.28em;color:var(--ink-500);margin-top:.35rem}
+.label .line{width:46px;height:2px;margin:.5rem auto;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.label .desc{font-size:.46rem;letter-spacing:.18em;color:var(--ink-500)}
+.label .mint{margin-top:.6rem;font-size:.5rem;color:var(--aqua-mint-deep);letter-spacing:.18em}
+
+/* sparkles */
+.spark{position:absolute;z-index:3;color:#fff;filter:drop-shadow(0 0 6px rgba(95,199,199,.7));animation:twinkle 3.5s ease-in-out infinite}
+.spark.s1{top:8%;left:18%;font-size:26px;animation-delay:.2s}
+.spark.s2{top:24%;right:14%;font-size:18px;animation-delay:1.1s}
+.spark.s3{bottom:18%;left:10%;font-size:20px;animation-delay:.6s}
+.spark.s4{bottom:30%;right:18%;font-size:14px;animation-delay:1.6s}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.8) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(20deg)}}
+
+/* bubbles */
+.bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.95),rgba(168,218,220,.35));z-index:1;animation:rise 7s linear infinite}
+.bubble.b1{width:22px;height:22px;left:30%;bottom:-10%;animation-delay:0s}
+.bubble.b2{width:14px;height:14px;left:62%;bottom:-10%;animation-delay:1.6s}
+.bubble.b3{width:30px;height:30px;left:48%;bottom:-10%;animation-delay:3.2s}
+.bubble.b4{width:10px;height:10px;left:20%;bottom:-10%;animation-delay:2.2s}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-440px);opacity:0}}
+
+/* === generic section heading === */
+.sec{padding:84px 0}
+.sec-head{text-align:center;max-width:42em;margin:0 auto 3rem}
+.eyebrow{
+  display:inline-block;font-family:var(--font-head);font-weight:700;
+  color:var(--aqua-mint-deep);letter-spacing:.22em;font-size:.78rem;
+  text-transform:uppercase;margin-bottom:.9rem;
+}
+.sec h2{font-family:var(--font-head);font-weight:900;font-size:var(--fs-h2);line-height:1.3;color:var(--ink-900)}
+.sec h2 .grad{background:linear-gradient(120deg,var(--steel-blue),var(--aqua-mint-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sec-sub{margin-top:1rem;color:var(--ink-500);font-size:var(--fs-lead)}
+
+/* === trust bar === */
+.trust{background:#fff;border-top:1px solid var(--frost-100);border-bottom:1px solid var(--frost-100)}
+.trust-row{display:flex;justify-content:center;gap:clamp(1rem,5vw,4rem);flex-wrap:wrap;padding:30px 0}
+.trust-item{text-align:center}
+.trust-item .num{font-family:var(--font-head);font-weight:900;font-size:1.9rem;color:var(--steel-blue);line-height:1}
+.trust-item .cap{font-size:.78rem;color:var(--ink-500);margin-top:.3rem}
+.trust-item .num .acc{color:var(--aqua-mint-deep)}
+
+/* === empathy === */
+.empathy{background:linear-gradient(180deg,var(--frost-50),#fff)}
+.empathy-bubbles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:.5rem}
+.worry{
+  background:#fff;border-radius:var(--radius);padding:1.6rem 1.4rem;
+  box-shadow:var(--shadow-sm);border:1px solid var(--frost-100);position:relative;
+}
+.worry .q{font-size:1.4rem;color:var(--silver);font-family:var(--font-serif);font-weight:700}
+.worry p{margin-top:.4rem;color:var(--ink-700);font-weight:500}
+.empathy-bridge{text-align:center;margin-top:2.6rem;font-size:var(--fs-lead);color:var(--ink-700);font-weight:500}
+.empathy-bridge strong{color:var(--steel-blue)}
+
+/* === features === */
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.feat{
+  background:var(--surface);border-radius:var(--radius-lg);padding:2rem 1.8rem;
+  box-shadow:var(--shadow-sm);border:1px solid var(--frost-100);
+  transition:transform .25s ease,box-shadow .25s ease;position:relative;overflow:hidden;
+}
+.feat:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.feat::after{content:"";position:absolute;right:-40px;top:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--frost-100),transparent 70%)}
+.feat-ico{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;margin-bottom:1.1rem;background:linear-gradient(135deg,var(--frost-100),#e6f7f6);position:relative;z-index:1}
+.feat h3{font-family:var(--font-head);font-weight:700;font-size:var(--fs-h3);margin-bottom:.5rem;position:relative;z-index:1}
+.feat p{color:var(--ink-500);font-size:.95rem;position:relative;z-index:1}
+.feat .no{position:absolute;top:1.4rem;right:1.6rem;font-family:var(--font-serif);font-weight:700;font-size:2.4rem;color:var(--frost-200);z-index:1}
+
+/* === after image === */
+.after{background:
+  radial-gradient(700px 360px at 85% 10%,#e6f7f6,transparent 60%),
+  linear-gradient(180deg,#fff,var(--frost-50));}
+.after-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.after-card{
+  background:#fff;border-radius:var(--radius-lg);padding:2rem;box-shadow:var(--shadow);
+  border:1px solid var(--frost-100);
+}
+.after-list{list-style:none;display:grid;gap:1rem}
+.after-list li{display:flex;gap:.9rem;align-items:flex-start}
+.after-list .ic{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--aqua-mint),var(--steel-blue));color:#fff;display:grid;place-items:center;font-weight:900;font-size:.85rem}
+.after-list b{display:block;color:var(--ink-900)}
+.after-list span{color:var(--ink-500);font-size:.92rem}
+/* smile scene */
+.smile-scene{position:relative;height:340px;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(160deg,#eaf5ff,#dff5f3);box-shadow:var(--shadow);display:grid;place-items:center}
+.smile-scene .ring{position:absolute;width:260px;height:260px;border-radius:50%;border:2px dashed rgba(95,199,199,.4);animation:spin 22s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tooth{position:relative;z-index:2;width:120px;height:140px;background:linear-gradient(180deg,#fff,#eef6ff);border-radius:50% 50% 46% 46%/60% 60% 40% 40%;box-shadow:inset -8px -6px 18px rgba(74,111,165,.12),0 14px 30px rgba(29,42,58,.15);display:grid;place-items:center}
+.tooth::before{content:"";position:absolute;bottom:0;width:6px;height:42px;background:linear-gradient(#eef6ff,#dfeefb);border-radius:4px}
+.tooth .shine{position:absolute;top:18px;left:24px;width:22px;height:30px;border-radius:50%;background:rgba(255,255,255,.9);filter:blur(1px)}
+.tooth .star{position:absolute;top:14px;right:18px;color:var(--aqua-mint-deep);font-size:20px;animation:twinkle 3s ease-in-out infinite}
+
+/* === ingredients === */
+.ingredients{background:var(--ink-900);color:#eaf1fb}
+.ingredients .eyebrow{color:var(--aqua-mint)}
+.ingredients h2{color:#fff}
+.ingredients .sec-sub{color:#a9b8cc}
+.ing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:.5rem}
+.ing-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+  border-radius:var(--radius);padding:1.8rem 1.5rem;backdrop-filter:blur(4px);
+}
+.ing-card .drop{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;margin-bottom:1rem;background:linear-gradient(135deg,var(--aqua-mint),var(--steel-blue))}
+.ing-card h3{font-family:var(--font-head);font-weight:700;color:#fff;margin-bottom:.4rem;font-size:1.1rem}
+.ing-card p{color:#a9b8cc;font-size:.9rem}
+.ing-note{margin-top:2rem;text-align:center;font-size:.8rem;color:#7e8da3}
+.craft{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:2.4rem}
+.craft span{font-size:.82rem;color:#cfe0f3;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:.5rem 1rem;border-radius:var(--radius-pill)}
+
+/* === how to use === */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:step}
+.step{background:#fff;border-radius:var(--radius-lg);padding:2rem 1.6rem;box-shadow:var(--shadow-sm);border:1px solid var(--frost-100);text-align:center;position:relative}
+.step .circ{width:74px;height:74px;border-radius:50%;margin:0 auto 1.1rem;display:grid;place-items:center;background:linear-gradient(135deg,var(--frost-100),#e6f7f6)}
+.step .n{position:absolute;top:1.2rem;left:1.4rem;font-family:var(--font-serif);font-weight:700;color:var(--steel-blue);font-size:1.6rem}
+.step h3{font-family:var(--font-head);font-weight:700;font-size:1.1rem;margin-bottom:.4rem}
+.step p{color:var(--ink-500);font-size:.92rem}
+
+/* === voices === */
+.voices{background:linear-gradient(180deg,#fff,var(--frost-50))}
+.voice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.voice{background:#fff;border-radius:var(--radius-lg);padding:1.9rem 1.7rem;box-shadow:var(--shadow-sm);border:1px solid var(--frost-100);display:flex;flex-direction:column;gap:1rem}
+.voice .stars{color:var(--gold);letter-spacing:.1em;font-size:1rem}
+.voice p{color:var(--ink-700);font-size:.95rem;flex:1}
+.voice .who{display:flex;align-items:center;gap:.8rem;border-top:1px solid var(--frost-100);padding-top:.9rem}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-head);font-weight:900;color:#fff;flex:0 0 auto}
+.avatar.a1{background:linear-gradient(135deg,var(--steel-blue),var(--aqua-mint))}
+.avatar.a2{background:linear-gradient(135deg,var(--aqua-mint-deep),#7fb4e0)}
+.avatar.a3{background:linear-gradient(135deg,#7e9bc7,var(--aqua-mint))}
+.voice .who b{font-size:.92rem}
+.voice .who span{font-size:.78rem;color:var(--ink-500)}
+
+/* === pricing === */
+.plans{display:grid;grid-template-columns:1fr 1.15fr;gap:24px;max-width:880px;margin:0 auto;align-items:stretch}
+.plan{background:#fff;border-radius:var(--radius-lg);padding:2.2rem 2rem;box-shadow:var(--shadow-sm);border:1px solid var(--frost-100);display:flex;flex-direction:column}
+.plan.featured{border:2px solid var(--aqua-mint);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.plan.featured::before{content:"いちばん人気";position:absolute;top:18px;right:-38px;transform:rotate(45deg);background:linear-gradient(135deg,var(--cta),var(--cta-deep));color:#fff;font-size:.72rem;font-weight:700;padding:.35rem 3rem}
+.plan h3{font-family:var(--font-head);font-weight:700;font-size:1.25rem;margin-bottom:.3rem}
+.plan .ptag{font-size:.85rem;color:var(--ink-500);margin-bottom:1.2rem}
+.plan .pmain{display:flex;align-items:baseline;gap:.4rem;margin-bottom:.4rem}
+.plan .pmain .yen{font-family:var(--font-head);font-weight:900;font-size:2.6rem;color:var(--ink-900)}
+.plan.featured .pmain .yen{color:var(--cta-deep)}
+.plan .pmain .unit{font-size:.85rem;color:var(--ink-500)}
+.plan .psub{font-size:.85rem;color:var(--ink-500);margin-bottom:1.3rem}
+.plan .psub s{color:var(--silver)}
+.plan ul{list-style:none;display:grid;gap:.7rem;margin-bottom:1.6rem}
+.plan ul li{display:flex;gap:.6rem;font-size:.92rem;color:var(--ink-700)}
+.plan ul li::before{content:"✓";color:var(--aqua-mint-deep);font-weight:900}
+.plan .btn{margin-top:auto}
+.plan-note{text-align:center;font-size:.8rem;color:var(--ink-500);margin-top:1.6rem;max-width:46em;margin-left:auto;margin-right:auto}
+
+/* === FAQ === */
+.faq-list{max-width:760px;margin:0 auto;display:grid;gap:14px}
+.faq{background:#fff;border:1px solid var(--frost-100);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.faq summary{cursor:pointer;list-style:none;padding:1.2rem 1.4rem;font-family:var(--font-head);font-weight:700;color:var(--ink-900);display:flex;justify-content:space-between;gap:1rem;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .q{display:flex;gap:.7rem}
+.faq summary .q b{color:var(--aqua-mint-deep);font-family:var(--font-serif)}
+.faq summary .ic{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--frost-100);color:var(--steel-blue);display:grid;place-items:center;transition:transform .25s;font-weight:700}
+.faq[open] summary .ic{transform:rotate(45deg)}
+.faq .ans{padding:0 1.4rem 1.3rem 1.4rem;color:var(--ink-500);font-size:.94rem}
+
+/* === final CTA === */
+.final{
+  color:#fff;text-align:center;overflow:hidden;
+  background:
+    radial-gradient(800px 400px at 20% 0%,rgba(95,199,199,.45),transparent 60%),
+    radial-gradient(700px 400px at 90% 100%,rgba(74,111,165,.5),transparent 60%),
+    linear-gradient(135deg,#26405f,#1d2a3a);
+}
+.final h2{font-family:var(--font-head);font-weight:900;font-size:var(--fs-h2);line-height:1.3;margin-bottom:1rem;color:#fff}
+.final p{color:#cfe0f3;font-size:var(--fs-lead);max-width:34em;margin:0 auto 1.2rem}
+.final .price-pill{display:inline-flex;align-items:baseline;gap:.5rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-pill);padding:.6rem 1.4rem;margin-bottom:1.8rem}
+.final .price-pill .yen{font-family:var(--font-head);font-weight:900;font-size:1.8rem;color:#fff}
+.final .price-pill .lbl{font-size:.85rem;color:var(--aqua-mint)}
+.final .btn-cta{font-size:1.15rem;padding:1.2rem 2.6rem}
+.final .guarantee{margin-top:1.4rem;font-size:.82rem;color:#a9b8cc}
+
+/* === footer === */
+.site-footer{background:#16202e;color:#8fa0b6;padding:54px 0 30px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px;margin-bottom:2.4rem}
+.foot-brand .brand{color:#fff;margin-bottom:.8rem}
+.foot-brand p{font-size:.85rem;max-width:26em;color:#7e8da3}
+.foot-col h4{color:#cfe0f3;font-size:.9rem;margin-bottom:.9rem;font-family:var(--font-head)}
+.foot-col a{display:block;font-size:.84rem;color:#8fa0b6;padding:.3rem 0;transition:color .2s}
+.foot-col a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:1.4rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem;font-size:.76rem;color:#6c7c92}
+.disclaimer{margin-top:1rem;font-size:.72rem;color:#5f6e84;line-height:1.7}
+
+/* === sticky mobile CTA === */
+.sticky-cta{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  border-top:1px solid var(--frost-200);padding:.7rem 14px;
+  box-shadow:0 -8px 24px rgba(29,42,58,.12);
+  align-items:center;gap:.8rem;
+}
+.sticky-cta .info{flex:1;min-width:0}
+.sticky-cta .info b{display:block;font-family:var(--font-head);font-weight:900;color:var(--cta-deep);font-size:1.1rem;line-height:1.1}
+.sticky-cta .info span{font-size:.72rem;color:var(--ink-500)}
+.sticky-cta .btn{padding:.85rem 1.4rem;font-size:.95rem;white-space:nowrap}
+
+/* === responsive === */
+@media(max-width:920px){
+  .hero-grid{grid-template-columns:1fr;text-align:center}
+  .hero-lead{margin-left:auto;margin-right:auto}
+  .hero-cta-row,.hero-note{justify-content:center}
+  .hero-visual{order:-1;min-height:360px}
+  .empathy-bubbles,.ing-grid,.steps,.voice-grid{grid-template-columns:1fr}
+  .features-grid{grid-template-columns:1fr}
+  .after-grid{grid-template-columns:1fr}
+  .plans{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .sticky-cta{display:flex}
+  body{padding-bottom:74px}
+  .sec{padding:60px 0}
+  .hero{padding:100px 0 50px}
+}
+@media(max-width:520px){
+  .foot-grid{grid-template-columns:1fr}
+  .empathy-bubbles{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" id="header">
+  <div class="container nav">
+    <a href="#top" class="brand" aria-label="LumiWhite ホーム">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <defs><linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#4a6fa5"/><stop offset="1" stop-color="#5fc7c7"/>
+        </linearGradient></defs>
+        <path d="M20 4C13 4 8 8 8 15c0 8 4 12 6 18 1 2.5 3 3 4 0l1-6c.4-2 1.6-2 2 0l1 6c1 3 3 2.5 4 0 2-6 6-10 6-18 0-7-5-11-12-11Z" fill="url(#bm)"/>
+        <circle cx="27" cy="12" r="3" fill="#fff" opacity=".85"/>
+      </svg>
+      <span><span class="lumi">Lumi</span><span class="white">White</span></span>
+    </a>
+    <nav class="nav-links" aria-label="メインナビゲーション">
+      <a href="#features">特徴</a>
+      <a href="#ingredients">成分</a>
+      <a href="#voices">お客様の声</a>
+      <a href="#price">価格</a>
+      <a href="#faq">FAQ</a>
+      <a href="#price" class="btn btn-cta nav-cta">初回980円で試す</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ===== HERO / FV ===== -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="hero-badge"><span class="dot"></span>ホワイトニングケア × 口臭ケア × 低刺激</span>
+      <h1>毎日のハミガキで、<br><span class="grad">透明感</span>のある<br><span class="hl">うるおう口元</span>へ。</h1>
+      <p class="hero-lead">こだわりのミントフレーバーで、すっきり気持ちいい。LumiWhite（ルミホワイト）は、毎日つづけやすいプレミアム歯みがき。あなたの「清潔感」を、足元からそっと支えます。</p>
+      <div class="hero-cta-row">
+        <a href="#price" class="btn btn-cta">初回980円で始める →</a>
+        <a href="#features" class="btn btn-ghost">特徴を見る</a>
+      </div>
+      <div class="hero-note">
+        <span><span class="check">✓</span>低刺激処方</span>
+        <span><span class="check">✓</span>研磨剤ひかえめ設計</span>
+        <span><span class="check">✓</span>毎日使いやすい</span>
+      </div>
+      <div class="price-flash">
+        <span class="lbl">定期初回</span>
+        <span class="yen">980<small>円</small></span>
+        <span class="was">通常 1,980円</span>
+      </div>
+    </div>
+
+    <!-- CSS / SVG で作った商品ビジュアル -->
+    <div class="hero-visual" aria-label="LumiWhite 商品イメージ">
+      <div class="glow"></div>
+      <span class="spark s1">✦</span><span class="spark s2">✧</span>
+      <span class="spark s3">✦</span><span class="spark s4">✧</span>
+      <span class="bubble b1"></span><span class="bubble b2"></span>
+      <span class="bubble b3"></span><span class="bubble b4"></span>
+      <div class="bottle">
+        <div class="cap"></div>
+        <div class="neck"></div>
+        <div class="body"></div>
+        <div class="label">
+          <div class="lw">Lumi<em>White</em></div>
+          <div class="tag">PREMIUM CARE</div>
+          <div class="line"></div>
+          <div class="desc">WHITENING · BREATH · MINT</div>
+          <div class="mint">120g / FRESH MINT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<section class="trust">
+  <div class="container trust-row">
+    <div class="trust-item"><div class="num">98<span class="acc">%</span></div><div class="cap">使用感に満足*</div></div>
+    <div class="trust-item"><div class="num">120<span class="acc">g</span></div><div class="cap">約1ヶ月分</div></div>
+    <div class="trust-item"><div class="num">6<span class="acc">つ</span></div><div class="cap">フリー処方**</div></div>
+    <div class="trust-item"><div class="num">20<span class="acc">-40</span></div><div class="cap">幅広い世代に</div></div>
+  </div>
+</section>
+
+<!-- ===== EMPATHY / 悩みへの共感 ===== -->
+<section class="sec empathy" id="empathy">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Your Worries</span>
+      <h2>こんな口元の<span class="grad">モヤモヤ</span>、<br>感じていませんか？</h2>
+      <p class="sec-sub">毎日のことだから、ちょっとした違和感が気になるもの。</p>
+    </div>
+    <div class="empathy-bubbles">
+      <div class="worry"><div class="q">Q.</div><p>笑ったときの歯の色、なんとなく気になる…</p></div>
+      <div class="worry"><div class="q">Q.</div><p>会話のとき、口元のニオイが心配になる。</p></div>
+      <div class="worry"><div class="q">Q.</div><p>刺激が強い歯みがきは、ちょっと苦手。</p></div>
+    </div>
+    <p class="empathy-bridge">そのお悩みに寄り添いたくて。<br><strong>毎日つづけやすい、やさしい使い心地</strong>のLumiWhiteが生まれました。</p>
+  </div>
+</section>
+
+<!-- ===== FEATURES / 特徴 ===== -->
+<section class="sec" id="features">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Features</span>
+      <h2>LumiWhite、<span class="grad">4つ</span>のこだわり</h2>
+      <p class="sec-sub">毎日の歯みがき時間を、心地よいケアの時間に。</p>
+    </div>
+    <div class="features-grid">
+      <article class="feat">
+        <span class="no">01</span>
+        <div class="feat-ico" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 3C8 3 5 6 5 11c0 5 3 7 4 10 .6 1.6 2.4 1.6 3 0l.6-4c.3-1.6 1.5-1.6 1.8 0l.6 4c.6 1.6 2.4 1.6 3 0 1-3 4-5 4-10 0-5-3-8-7-8Z" fill="#4a6fa5"/><circle cx="16" cy="9" r="2" fill="#fff"/></svg>
+        </div>
+        <h3>ホワイトニングケア</h3>
+        <p>毎日のブラッシングで、着色汚れ（ステイン）をやさしくケア。歯本来の白さと透明感を目指す処方設計です。</p>
+      </article>
+      <article class="feat">
+        <span class="no">02</span>
+        <div class="feat-ico" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M6 12c2-1 3 1 6 0s4-2 6-1" stroke="#5fc7c7" stroke-width="2" stroke-linecap="round"/><path d="M6 16c2-1 3 1 6 0s4-2 6-1" stroke="#4a6fa5" stroke-width="2" stroke-linecap="round"/><path d="M6 8c2-1 3 1 6 0s4-2 6-1" stroke="#5fc7c7" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <h3>口臭ケア設計</h3>
+        <p>口内をすっきり洗い上げ、ミントの香りでさわやかな息に。人と近づく場面でも、自信をもって過ごせます。</p>
+      </article>
+      <article class="feat">
+        <span class="no">03</span>
+        <div class="feat-ico" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z" stroke="#4a6fa5" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#5fc7c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>低刺激・やさしい使い心地</h3>
+        <p>研磨剤をひかえめにした処方で、毎日のケアもおだやか。刺激が気になる方にも使いやすい使用感です。</p>
+      </article>
+      <article class="feat">
+        <span class="no">04</span>
+        <div class="feat-ico" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 5.6L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.6-1.4L12 2Z" fill="#c8a86a"/></svg>
+        </div>
+        <h3>続けたくなるミントフレーバー</h3>
+        <p>強すぎない、ほどよい清涼感のフレッシュミント。毎日続けやすいから、ケアが自然と習慣になります。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== AFTER IMAGE / 使用後イメージ ===== -->
+<section class="sec after" id="after">
+  <div class="container after-grid">
+    <div class="smile-scene" aria-label="清潔感のある口元イメージ">
+      <span class="ring"></span>
+      <div class="tooth"><span class="shine"></span><span class="star">✦</span></div>
+    </div>
+    <div>
+      <span class="eyebrow">After Image</span>
+      <h2 style="font-family:var(--font-head);font-weight:900;font-size:var(--fs-h2);line-height:1.3;margin-bottom:1rem">毎日の積み重ねが、<br>こんな<span class="grad">明日</span>へ。</h2>
+      <div class="after-card">
+        <ul class="after-list">
+          <li><span class="ic">✓</span><div><b>鏡を見るのが、ちょっと楽しみに。</b><span>透明感のある口元で、笑顔に自信を。</span></div></li>
+          <li><span class="ic">✓</span><div><b>人との距離が、気にならない。</b><span>さわやかな息で、会話ももっと前向きに。</span></div></li>
+          <li><span class="ic">✓</span><div><b>朝も夜も、すっきり気持ちいい。</b><span>心地よいミントで、ケアの時間が楽しみに。</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INGREDIENTS / 成分・こだわり ===== -->
+<section class="sec ingredients" id="ingredients">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Ingredients & Craft</span>
+      <h2>選び抜いた、うるおい成分</h2>
+      <p class="sec-sub">毎日使うものだから、中身にもこだわって。</p>
+    </div>
+    <div class="ing-grid">
+      <div class="ing-card">
+        <div class="drop" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3s6 7 6 11a6 6 0 11-12 0c0-4 6-11 6-11Z" fill="#fff"/></svg></div>
+        <h3>うるおいハーブエキス</h3>
+        <p>口内のうるおいバランスに着目。乾きがちな口元を、やさしく整えるサポート成分を配合しました。</p>
+      </div>
+      <div class="ing-card">
+        <div class="drop" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 4c4 0 7 3 7 7s-3 7-7 7M12 4c-2 2-2 5 0 7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>クリアケア成分</h3>
+        <p>着色汚れにアプローチする清掃成分を採用。歯の表面をなめらかに整え、透明感のある印象へ導きます。</p>
+      </div>
+      <div class="ing-card">
+        <div class="drop" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 13l3 4 4-7 3 5 4-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>フレッシュミント</h3>
+        <p>天然由来のミント香料を厳選。爽やかな後味で、息までクリアに。続けたくなる心地よさにこだわりました。</p>
+      </div>
+    </div>
+    <div class="craft">
+      <span>パラベンフリー</span><span>合成着色料フリー</span><span>鉱物油フリー</span>
+      <span>サルフェートフリー</span><span>研磨剤ひかえめ</span><span>国内製造</span>
+    </div>
+    <p class="ing-note">※ 配合成分はうるおいケア・使用感をサポートするものです。効果には個人差があります。</p>
+  </div>
+</section>
+
+<!-- ===== HOW TO USE / 使い方 ===== -->
+<section class="sec" id="howto">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">How to Use</span>
+      <h2>使い方は、いつもどおり<span class="grad">3ステップ</span></h2>
+      <p class="sec-sub">特別な準備はいりません。毎日の歯みがきに置き換えるだけ。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="n">1</span>
+        <div class="circ" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><rect x="3" y="14" width="9" height="4" rx="2" fill="#4a6fa5"/><rect x="11" y="13.5" width="9" height="2" rx="1" fill="#5fc7c7" transform="rotate(-8 11 13.5)"/><path d="M12 15c2 0 4 0 6-1" stroke="#5fc7c7" stroke-width="1.5"/></svg></div>
+        <h3>適量をとる</h3>
+        <p>歯ブラシに、1cmほどのLumiWhiteをとります。</p>
+      </div>
+      <div class="step">
+        <span class="n">2</span>
+        <div class="circ" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#4a6fa5" stroke-width="2"/><path d="M8 12c1.5 1.5 6.5 1.5 8 0" stroke="#5fc7c7" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>やさしく磨く</h3>
+        <p>1本ずつ、約2分を目安にていねいにブラッシング。</p>
+      </div>
+      <div class="step">
+        <span class="n">3</span>
+        <div class="circ" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M6 10c2-2 4 2 6 0s4-2 6 0" stroke="#5fc7c7" stroke-width="2" stroke-linecap="round"/><path d="M6 14c2-2 4 2 6 0s4-2 6 0" stroke="#4a6fa5" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <h3>すすいで完了</h3>
+        <p>お口をすすげば、すっきりさわやか。1日2回が目安です。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VOICES / 利用者の声 ===== -->
+<section class="sec voices" id="voices">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Customer Voices</span>
+      <h2>使ってよかった、の声</h2>
+      <p class="sec-sub">LumiWhiteを毎日のケアに取り入れた方の感想をご紹介します。</p>
+    </div>
+    <div class="voice-grid">
+      <article class="voice">
+        <div class="stars">★★★★★</div>
+        <p>「ミントが強すぎないのが好みでした。朝みがいたあとの口の中がすっきりして、気持ちよく一日を始められます。続けやすいのがうれしい。」</p>
+        <div class="who"><div class="avatar a1">M</div><div><b>M.K さん</b><span>32歳・会社員</span></div></div>
+      </article>
+      <article class="voice">
+        <div class="stars">★★★★★</div>
+        <p>「人と話す仕事なので、口元の清潔感は気になっていました。LumiWhiteにしてから、笑うときの気持ちがちょっと前向きになった気がします。」</p>
+        <div class="who"><div class="avatar a2">S</div><div><b>S.T さん</b><span>28歳・接客業</span></div></div>
+      </article>
+      <article class="voice">
+        <div class="stars">★★★★☆</div>
+        <p>「刺激が苦手で歯みがきを選んでいましたが、これはおだやかな使い心地。デザインも洗面所に置いておくだけで気分が上がります。」</p>
+        <div class="who"><div class="avatar a3">A</div><div><b>A.Y さん</b><span>41歳・主婦</span></div></div>
+      </article>
+    </div>
+    <p class="ing-note" style="color:var(--ink-500)">※ 個人の感想であり、使用感には個人差があります。効果効能を保証するものではありません。</p>
+  </div>
+</section>
+
+<!-- ===== PRICING / 価格プラン ===== -->
+<section class="sec" id="price" style="background:linear-gradient(180deg,var(--frost-50),#fff)">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">Price Plan</span>
+      <h2>いちばんお得に、<span class="grad">気軽に</span>始める</h2>
+      <p class="sec-sub">まずは試したい方も、続けたい方も。ぴったりのプランをどうぞ。</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h3>都度購入</h3>
+        <p class="ptag">まずは1本だけ試したい方に</p>
+        <div class="pmain"><span class="yen">1,980</span><span class="unit">円（税込）/ 本</span></div>
+        <p class="psub">120g・約1ヶ月分／送料は別途</p>
+        <ul>
+          <li>1本からお届け</li>
+          <li>回数のしばりなし</li>
+          <li>いつでも追加注文OK</li>
+        </ul>
+        <a href="#final" class="btn btn-ghost btn-block">1本を購入する</a>
+      </div>
+      <div class="plan featured">
+        <h3>定期おトクコース</h3>
+        <p class="ptag">続けたい方にいちばんおすすめ</p>
+        <div class="pmain"><span class="yen">980</span><span class="unit">円（税込）/ 初回</span></div>
+        <p class="psub">2回目以降 1,680円 ／ <s>通常 1,980円</s>・送料無料</p>
+        <ul>
+          <li>初回50%OFFで気軽にスタート</li>
+          <li>2回目以降もずっと割引価格</li>
+          <li>毎月自動でお届け、買い忘れなし</li>
+          <li>お届け周期の変更・休止はいつでもOK</li>
+        </ul>
+        <a href="#final" class="btn btn-cta btn-block">初回980円で始める →</a>
+      </div>
+    </div>
+    <p class="plan-note">※ 定期おトクコースは継続のお約束のない、いつでも休止・解約が可能なコースです。次回お届け予定日の◯日前までにマイページまたはお電話でお手続きください。価格はすべて税込表示です。</p>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="sec" id="faq" style="background:#fff">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow">FAQ</span>
+      <h2>よくあるご質問</h2>
+      <p class="sec-sub">はじめての方からよくいただく質問をまとめました。</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq" open>
+        <summary><span class="q"><b>Q.</b>毎日使っても大丈夫ですか？</span><span class="ic">+</span></summary>
+        <div class="ans">はい。1日2回、朝晩の歯みがきにお使いいただくことを目安にしています。低刺激・研磨剤ひかえめの処方で、毎日のケアに取り入れやすい使用感を目指しました。</div>
+      </details>
+      <details class="faq">
+        <summary><span class="q"><b>Q.</b>どのくらいで実感できますか？</span><span class="ic">+</span></summary>
+        <div class="ans">使用感には個人差があります。毎日のケアを続けることが大切ですので、まずは1ヶ月（1本）を目安に、ご自身のペースで継続してみてください。</div>
+      </details>
+      <details class="faq">
+        <summary><span class="q"><b>Q.</b>刺激は強くありませんか？</span><span class="ic">+</span></summary>
+        <div class="ans">刺激の感じ方には個人差がありますが、強すぎない清涼感を意識したフレッシュミントと、低刺激処方を採用しています。刺激が気になる方にも使いやすい設計です。</div>
+      </details>
+      <details class="faq">
+        <summary><span class="q"><b>Q.</b>定期コースはいつでも解約できますか？</span><span class="ic">+</span></summary>
+        <div class="ans">はい。回数のお約束はなく、いつでも休止・解約いただけます。次回お届け予定日の数日前までに、マイページまたはお電話にてお手続きください。</div>
+      </details>
+      <details class="faq">
+        <summary><span class="q"><b>Q.</b>1本でどのくらい使えますか？</span><span class="ic">+</span></summary>
+        <div class="ans">内容量は120gで、1日2回のご使用で約1ヶ月分が目安です。使用量や回数によって前後する場合があります。</div>
+      </details>
+      <details class="faq">
+        <summary><span class="q"><b>Q.</b>家族で一緒に使えますか？</span><span class="ic">+</span></summary>
+        <div class="ans">大人の方であれば、ご家族で共有いただけます。お子さまがお使いの際は、保護者の方の見守りのもとでご使用ください。気になる成分がある場合は、パッケージの全成分表示をご確認ください。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="sec final" id="final">
+  <div class="container">
+    <span class="eyebrow" style="color:var(--aqua-mint)">Start Today</span>
+    <h2>透明感のある毎日を、<br>今日から始めませんか。</h2>
+    <p>LumiWhite 定期おトクコースなら、初回50%OFF。続けやすい価格で、毎日のケアをアップデート。</p>
+    <div class="price-pill"><span class="lbl">定期初回</span><span class="yen">980円</span><span class="lbl">（税込・送料無料）</span></div>
+    <div>
+      <a href="#" class="btn btn-cta">初回980円で申し込む →</a>
+    </div>
+    <p class="guarantee">いつでも休止・解約OK ／ 2回目以降も 1,680円 のずっと割引</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="brand"><span class="lumi" style="color:#fff">Lumi</span><span class="white" style="color:#5fc7c7">White</span></div>
+        <p>透明感のある毎日へ。毎日つづけやすい、プレミアム歯みがきブランド LumiWhite（ルミホワイト）。清潔感のある口元を、やさしくサポートします。</p>
+      </div>
+      <div class="foot-col">
+        <h4>商品・サービス</h4>
+        <a href="#features">商品の特徴</a>
+        <a href="#ingredients">成分・こだわり</a>
+        <a href="#price">価格プラン</a>
+        <a href="#faq">よくある質問</a>
+      </div>
+      <div class="foot-col">
+        <h4>サポート</h4>
+        <a href="#">お問い合わせ</a>
+        <a href="#">定期コースについて</a>
+        <a href="#">特定商取引法に基づく表記</a>
+        <a href="#">プライバシーポリシー</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 LumiWhite. All rights reserved.</span>
+      <span>※ 本ページはイメージ用の架空ブランドLPです。</span>
+    </div>
+    <p class="disclaimer">
+      ＊使用感に関する自社アンケート（イメージ）に基づく参考値です。＊＊パラベン・合成着色料・鉱物油・サルフェート等を配合しない処方を指します。本品は化粧品・医薬部外品ではなく、効果・効能を保証するものではありません。表現はあくまで使用感やケアのイメージであり、医学的効果を示すものではありません。お肌や口内に異常があらわれた場合はご使用を中止し、専門家にご相談ください。価格はすべて税込表示です。
+    </p>
+  </div>
+</footer>
+
+<!-- ===== STICKY MOBILE CTA ===== -->
+<div class="sticky-cta">
+  <div class="info"><b>初回 980円</b><span>定期おトクコース・送料無料</span></div>
+  <a href="#price" class="btn btn-cta">申し込む →</a>
+</div>
+
+<script>
+// ヘッダーの影（スクロール時）
+(function(){
+  var h=document.getElementById('header');
+  var onScroll=function(){
+    if(window.scrollY>20){h.classList.add('scrolled');}
+    else{h.classList.remove('scrolled');}
+  };
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+  // FAQ：開いたら他を閉じる（アコーディオン）
+  var faqs=document.querySelectorAll('.faq');
+  faqs.forEach(function(d){
+    d.addEventListener('toggle',function(){
+      if(d.open){faqs.forEach(function(o){if(o!==d)o.open=false;});}
+    });
+  });
+})();
+</script>
+</body>
+</html>

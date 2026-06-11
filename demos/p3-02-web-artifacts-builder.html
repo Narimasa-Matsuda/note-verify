@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LumiWhite ｜ 毎日に、透明感のある口もとを。プレミアム歯みがき</title>
+<meta name="description" content="LumiWhite（ルミホワイト）は、ホワイトニングケア・口臭ケア・低刺激にこだわったプレミアム歯みがき。心地よいミントフレーバーで毎日続けやすい大人のオーラルケア。" />
+<style>
+  /* =========================================================
+     DESIGN TOKENS  (web-artifacts-builder: CSS変数によるデザイントークン)
+     shadcn流のHSLトークン設計を踏襲。"AIスロップ"回避：
+     紫グラデ不使用 / 過度な中央寄せ回避 / 角丸を用途で出し分け / Inter不使用
+     ========================================================= */
+  :root {
+    /* Brand palette — 清潔感ある水色〜ミント、上質なインクネイビー、シャンパンゴールドのアクセント */
+    --bg: 200 50% 99%;
+    --surface: 0 0% 100%;
+    --ink: 205 35% 16%;        /* 本文：深いネイビー寄りの黒 */
+    --ink-soft: 205 18% 38%;
+    --muted: 200 30% 96%;
+    --muted-foreground: 205 14% 48%;
+    --border: 205 25% 90%;
+
+    --primary: 188 78% 41%;     /* メインの清涼ティール */
+    --primary-deep: 196 74% 30%;
+    --primary-foreground: 0 0% 100%;
+
+    --mint: 162 58% 56%;
+    --aqua: 192 84% 88%;
+    --accent: 38 64% 60%;       /* シャンパンゴールド（高級感のアクセント） */
+    --accent-deep: 35 52% 46%;
+
+    --ring: 188 78% 41%;
+    --radius: 16px;
+
+    /* Typography scale */
+    --font-sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "BIZ UDPGothic", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    --font-serif: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+
+    --shadow-sm: 0 1px 2px hsl(205 40% 20% / .06), 0 1px 3px hsl(205 40% 20% / .08);
+    --shadow-md: 0 8px 24px -8px hsl(196 60% 25% / .18);
+    --shadow-lg: 0 30px 60px -24px hsl(196 70% 22% / .35);
+    --shadow-glow: 0 0 0 1px hsl(188 78% 41% / .15), 0 18px 50px -16px hsl(188 78% 41% / .45);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: hsl(var(--ink));
+    background: hsl(var(--bg));
+    line-height: 1.75;
+    letter-spacing: .01em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  h1,h2,h3 { line-height: 1.35; letter-spacing: .02em; margin: 0; }
+
+  .wrap { width: min(1120px, 92vw); margin-inline: auto; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5em;
+    font-size: .78rem; font-weight: 700; letter-spacing: .18em;
+    color: hsl(var(--primary-deep)); text-transform: uppercase;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 2px; background: hsl(var(--accent)); display: inline-block; }
+
+  .section { padding: clamp(60px, 9vw, 120px) 0; position: relative; }
+  .section-head { max-width: 640px; margin-bottom: clamp(36px, 5vw, 56px); }
+  .section-head.center { margin-inline: auto; text-align: center; }
+  .section-head h2 {
+    font-size: clamp(1.7rem, 4.4vw, 2.7rem); font-weight: 800; margin: .5rem 0 .6rem;
+  }
+  .section-head p { color: hsl(var(--ink-soft)); font-size: 1.02rem; margin: 0; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .55em;
+    font-weight: 800; font-size: 1rem; border: none; border-radius: 999px;
+    padding: 1rem 1.9rem; transition: transform .18s ease, box-shadow .25s ease, filter .2s ease;
+    text-align: center; line-height: 1.2;
+  }
+  .btn-primary {
+    color: hsl(var(--primary-foreground));
+    background: linear-gradient(135deg, hsl(var(--mint)) 0%, hsl(var(--primary)) 55%, hsl(var(--primary-deep)) 100%);
+    box-shadow: var(--shadow-glow);
+  }
+  .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ghost {
+    color: hsl(var(--primary-deep)); background: hsl(var(--surface));
+    border: 1.5px solid hsl(var(--border)); box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { border-color: hsl(var(--primary) / .5); }
+  .btn-lg { padding: 1.15rem 2.4rem; font-size: 1.08rem; }
+  .btn-block { width: 100%; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: .45em; font-size: .82rem; font-weight: 700;
+    padding: .4em .85em; border-radius: 999px; background: hsl(var(--aqua) / .6);
+    color: hsl(var(--primary-deep)); border: 1px solid hsl(var(--primary) / .18);
+  }
+
+  /* ===========================================================
+     PRODUCT VISUAL — CSSで描くチューブ／泡／きらめき／歯ブラシ
+     =========================================================== */
+  .tube {
+    position: relative; width: 132px; height: 360px; margin: 0 auto;
+    filter: drop-shadow(0 26px 36px hsl(196 60% 22% / .28));
+  }
+  .tube__cap {
+    position: absolute; top: 0; left: 50%; translate: -50% 0;
+    width: 64px; height: 40px; border-radius: 10px 10px 6px 6px;
+    background: linear-gradient(180deg, hsl(var(--accent)) 0%, hsl(var(--accent-deep)) 100%);
+    box-shadow: inset 0 -4px 8px hsl(35 60% 30% / .4), inset 0 3px 4px hsl(45 80% 85% / .6);
+    z-index: 3;
+  }
+  .tube__cap::after {
+    content: ""; position: absolute; inset: 4px 8px auto 8px; height: 8px; border-radius: 6px;
+    background: linear-gradient(180deg, hsl(48 80% 92% / .85), transparent);
+  }
+  .tube__body {
+    position: absolute; top: 34px; left: 50%; translate: -50% 0;
+    width: 122px; height: 300px; border-radius: 26px 26px 14px 14px;
+    background:
+      linear-gradient(100deg, hsl(0 0% 100% / .9) 0%, hsl(200 60% 98%) 32%, hsl(192 50% 94%) 60%, hsl(200 40% 90%) 100%);
+    border: 1px solid hsl(200 40% 92%);
+    overflow: hidden;
+    box-shadow: inset -14px 0 26px hsl(200 50% 80% / .5), inset 14px 0 22px hsl(0 0% 100% / .9);
+  }
+  /* チューブ末端の圧着シーム */
+  .tube__seam {
+    position: absolute; bottom: 0; left: 50%; translate: -50% 0;
+    width: 122px; height: 16px; border-radius: 0 0 4px 4px;
+    background: repeating-linear-gradient(90deg, hsl(200 35% 86%) 0 4px, hsl(200 30% 92%) 4px 8px);
+    z-index: 2;
+  }
+  .tube__sheen {
+    position: absolute; top: 40px; left: 26px; width: 22px; height: 250px; border-radius: 999px;
+    background: linear-gradient(180deg, hsl(0 0% 100% / .95), hsl(0 0% 100% / .15));
+    filter: blur(2px); z-index: 4;
+  }
+  .tube__label {
+    position: absolute; top: 70px; left: 50%; translate: -50% 0; z-index: 4;
+    width: 104px; text-align: center; color: hsl(var(--primary-deep));
+  }
+  .tube__brand {
+    font-family: var(--font-serif); font-weight: 700; font-size: 1.32rem; letter-spacing: .04em;
+    color: hsl(var(--primary-deep));
+  }
+  .tube__brand b { color: hsl(var(--accent-deep)); }
+  .tube__sub { font-size: .56rem; letter-spacing: .26em; color: hsl(var(--muted-foreground)); margin-top: 3px; }
+  .tube__rule { width: 46px; height: 2px; background: hsl(var(--accent)); margin: 8px auto; border-radius: 2px; }
+  .tube__desc { font-size: .5rem; letter-spacing: .12em; color: hsl(var(--ink-soft)); line-height: 1.5; }
+  .tube__band {
+    position: absolute; bottom: 36px; left: 0; width: 100%; height: 46px; z-index: 3;
+    background: linear-gradient(135deg, hsl(var(--mint)) 0%, hsl(var(--primary)) 100%);
+    opacity: .92;
+  }
+  .tube__band::after {
+    content: "WHITENING CARE"; position: absolute; inset: 0; display: grid; place-items: center;
+    color: #fff; font-size: .5rem; letter-spacing: .24em; font-weight: 700;
+  }
+
+  /* 歯ブラシ */
+  .brush { position: relative; width: 220px; height: 46px; }
+  .brush__handle {
+    position: absolute; right: 0; top: 13px; width: 168px; height: 18px; border-radius: 12px;
+    background: linear-gradient(180deg, hsl(192 60% 96%), hsl(192 40% 86%));
+    box-shadow: var(--shadow-sm);
+  }
+  .brush__neck {
+    position: absolute; right: 150px; top: 16px; width: 40px; height: 12px;
+    background: linear-gradient(180deg, hsl(192 60% 94%), hsl(192 40% 84%));
+    border-radius: 8px;
+  }
+  .brush__head {
+    position: absolute; left: 0; top: 8px; width: 56px; height: 28px; border-radius: 14px;
+    background: linear-gradient(180deg, hsl(0 0% 100%), hsl(200 30% 92%));
+    box-shadow: var(--shadow-sm);
+  }
+  .brush__bristles { position: absolute; left: 6px; top: 0; width: 46px; height: 12px;
+    background: repeating-linear-gradient(90deg, hsl(188 50% 78%) 0 3px, transparent 3px 6px);
+    border-radius: 3px;
+  }
+  .brush__paste {
+    position: absolute; left: 8px; top: -6px; width: 40px; height: 12px; border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, hsl(var(--mint)), hsl(var(--primary)));
+    box-shadow: 0 2px 6px hsl(188 60% 40% / .4);
+  }
+
+  /* 泡 + きらめき（装飾） */
+  .bubble { position: absolute; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle at 32% 28%, hsl(0 0% 100% / .95), hsl(192 70% 88% / .35) 55%, hsl(188 60% 70% / .12));
+    border: 1px solid hsl(0 0% 100% / .6);
+  }
+  .sparkle { position: absolute; pointer-events: none; color: hsl(var(--accent)); opacity: .9; }
+  .sparkle svg { display: block; }
+  @keyframes floatY { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-14px) } }
+  @keyframes twinkle { 0%,100%{ opacity:.25; transform: scale(.7) } 50%{ opacity:1; transform: scale(1) } }
+  @keyframes rise { 0%{ transform: translateY(10px); opacity:0 } 20%{opacity:.9} 100%{ transform: translateY(-90px); opacity:0 } }
+  .floaty { animation: floatY 6s ease-in-out infinite; }
+  .twinkly { animation: twinkle 3.2s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .floaty, .twinkly { animation: none; } }
+
+  /* ===========================================================
+     HEADER
+     =========================================================== */
+  header.site {
+    position: sticky; top: 0; z-index: 50;
+    background: hsl(var(--surface) / .82); backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 1rem; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1.22rem; letter-spacing: .04em; }
+  .brand .mark {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary-deep)));
+    color: #fff; box-shadow: var(--shadow-sm);
+  }
+  .brand span b { color: hsl(var(--accent-deep)); }
+  .nav-links { display: flex; align-items: center; gap: 1.6rem; }
+  .nav-links a { font-size: .92rem; font-weight: 600; color: hsl(var(--ink-soft)); }
+  .nav-links a:hover { color: hsl(var(--primary-deep)); }
+  .nav-cta { display: flex; align-items: center; gap: .8rem; }
+  .nav-cta .btn { padding: .65rem 1.3rem; font-size: .92rem; }
+  .hamburger {
+    display: none; width: 44px; height: 44px; border-radius: 12px; border: 1px solid hsl(var(--border));
+    background: hsl(var(--surface)); align-items: center; justify-content: center;
+  }
+  .hamburger span { display: block; width: 20px; height: 2px; background: hsl(var(--ink)); position: relative; }
+  .hamburger span::before, .hamburger span::after { content:""; position:absolute; left:0; width:20px; height:2px; background: hsl(var(--ink)); }
+  .hamburger span::before { top: -6px; } .hamburger span::after { top: 6px; }
+  .mobile-menu { display: none; }
+
+  /* ===========================================================
+     HERO / FV
+     =========================================================== */
+  .hero { position: relative; overflow: hidden;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, hsl(var(--aqua) / .7), transparent 60%),
+      radial-gradient(900px 500px at 0% 110%, hsl(var(--mint) / .18), transparent 60%),
+      linear-gradient(180deg, hsl(200 60% 99%), hsl(var(--bg)));
+  }
+  .hero__grid {
+    display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(24px, 4vw, 56px);
+    align-items: center; padding: clamp(48px, 7vw, 96px) 0 clamp(56px, 8vw, 110px);
+  }
+  .hero h1 { font-size: clamp(2.1rem, 6vw, 3.7rem); font-weight: 900; letter-spacing: .015em; }
+  .hero h1 .hl { position: relative; color: hsl(var(--primary-deep)); white-space: nowrap; }
+  .hero h1 .hl::after {
+    content:""; position:absolute; left:-2%; right:-2%; bottom: .08em; height: .34em; z-index:-1;
+    background: linear-gradient(90deg, hsl(var(--accent) / .55), hsl(var(--mint) / .45)); border-radius: 4px;
+  }
+  .hero__lead { font-size: clamp(1rem, 2.4vw, 1.18rem); color: hsl(var(--ink-soft)); margin: 1.3rem 0 1.9rem; max-width: 30em; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: .9rem; align-items: center; }
+  .hero__meta { display: flex; flex-wrap: wrap; gap: 1.2rem 1.8rem; margin-top: 1.9rem; }
+  .hero__meta div { display: flex; align-items: baseline; gap: .4rem; }
+  .hero__meta b { font-size: 1.5rem; font-weight: 900; color: hsl(var(--primary-deep)); }
+  .hero__meta small { font-size: .82rem; color: hsl(var(--muted-foreground)); }
+  .trust-row { display: flex; align-items: center; gap: .6rem; margin-top: 1.4rem; color: hsl(var(--ink-soft)); font-size: .9rem; }
+  .stars { color: hsl(var(--accent)); letter-spacing: .1em; }
+
+  .hero__stage { position: relative; height: clamp(380px, 46vw, 560px); display: grid; place-items: center; }
+  .hero__halo {
+    position: absolute; width: 78%; aspect-ratio: 1; border-radius: 50%; z-index: 0;
+    background: radial-gradient(circle, hsl(0 0% 100% / .9), hsl(var(--aqua) / .5) 45%, transparent 72%);
+    filter: blur(2px);
+  }
+  .hero__ring { position:absolute; width: 86%; aspect-ratio:1; border-radius:50%; border: 1.5px dashed hsl(var(--primary) / .25); z-index:0; }
+  .price-tag {
+    position: absolute; right: 4%; top: 8%; z-index: 6; background: hsl(var(--surface));
+    border-radius: 18px; padding: .85rem 1.1rem; box-shadow: var(--shadow-md); border: 1px solid hsl(var(--border));
+    text-align: center; transform: rotate(3deg);
+  }
+  .price-tag small { font-size: .68rem; color: hsl(var(--muted-foreground)); display:block; }
+  .price-tag .now { font-size: 1.5rem; font-weight: 900; color: hsl(var(--primary-deep)); }
+  .price-tag .now em { font-size: .9rem; font-style: normal; }
+  .price-tag .was { font-size: .82rem; color: hsl(var(--muted-foreground)); text-decoration: line-through; }
+  .badge-float {
+    position:absolute; left: 2%; bottom: 12%; z-index:6; background: hsl(var(--primary-deep)); color:#fff;
+    border-radius: 14px; padding: .6rem .9rem; box-shadow: var(--shadow-md); font-size:.8rem; font-weight:700;
+    display:flex; align-items:center; gap:.5rem; transform: rotate(-4deg);
+  }
+
+  /* logo strip */
+  .strip { border-top: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); background: hsl(var(--surface)); }
+  .strip__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.6rem; padding: 1.1rem 0; }
+  .strip__item { display:flex; align-items:center; gap:.5rem; font-size:.86rem; font-weight:700; color: hsl(var(--ink-soft)); }
+  .strip__item svg { color: hsl(var(--primary)); }
+
+  /* ===========================================================
+     EMPATHY (悩みへの共感)
+     =========================================================== */
+  .empathy { background: linear-gradient(180deg, hsl(var(--bg)), hsl(200 45% 97%)); }
+  .worry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .worry {
+    background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+    padding: 1.5rem 1.4rem; box-shadow: var(--shadow-sm); position: relative;
+  }
+  .worry .q { font-size: 2rem; color: hsl(var(--primary) / .35); font-weight: 900; font-family: var(--font-serif); line-height: 1; }
+  .worry p { margin: .5rem 0 0; font-weight: 600; font-size: 1rem; }
+  .empathy__bridge {
+    margin-top: 2.4rem; text-align: center; font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 800;
+    color: hsl(var(--primary-deep)); font-family: var(--font-serif);
+  }
+
+  /* ===========================================================
+     FEATURES
+     =========================================================== */
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+  .feat {
+    display: flex; gap: 1.1rem; padding: 1.7rem; border-radius: var(--radius);
+    background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, box-shadow .25s ease;
+  }
+  .feat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .feat__icon {
+    flex: 0 0 auto; width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary-deep)));
+    box-shadow: 0 8px 18px -6px hsl(188 70% 40% / .6);
+  }
+  .feat__icon.alt { background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-deep))); box-shadow: 0 8px 18px -6px hsl(38 70% 45% / .55); }
+  .feat h3 { font-size: 1.16rem; font-weight: 800; }
+  .feat p { margin: .4rem 0 0; color: hsl(var(--ink-soft)); font-size: .95rem; }
+
+  /* ===========================================================
+     RESULT / AFTER IMAGE
+     =========================================================== */
+  .result { background: linear-gradient(180deg, hsl(200 50% 98%), hsl(var(--surface))); }
+  .result__grid { display:grid; grid-template-columns: .9fr 1.1fr; gap: clamp(28px, 5vw, 64px); align-items:center; }
+  .smile-card {
+    position: relative; border-radius: 26px; padding: 2rem; min-height: 340px;
+    background:
+      radial-gradient(600px 300px at 70% 0%, hsl(var(--aqua) / .7), transparent 60%),
+      linear-gradient(160deg, hsl(var(--surface)), hsl(200 40% 96%));
+    border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-md); display:grid; place-items:center; overflow:hidden;
+  }
+  .smile { width: 230px; }
+  .checklist { display: grid; gap: .9rem; margin-top: 1.4rem; }
+  .checklist li { list-style: none; display: flex; gap: .75rem; align-items: flex-start; font-size: 1.02rem; }
+  .checklist .ck {
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 999px; display:grid; place-items:center; color:#fff;
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary))); margin-top: .2rem;
+  }
+  .checklist b { font-weight: 800; }
+
+  /* ===========================================================
+     INGREDIENTS
+     =========================================================== */
+  .ingredients { color: #eaf7fb; background:
+      radial-gradient(900px 500px at 90% -10%, hsl(192 60% 30% / .9), transparent 60%),
+      linear-gradient(160deg, hsl(202 60% 17%), hsl(196 70% 12%)); }
+  .ingredients .eyebrow { color: hsl(var(--accent)); }
+  .ingredients .eyebrow::before { background: hsl(var(--accent)); }
+  .ingredients .section-head h2 { color: #fff; }
+  .ingredients .section-head p { color: hsl(192 30% 78%); }
+  .ing-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .ing {
+    background: hsl(0 0% 100% / .06); border: 1px solid hsl(0 0% 100% / .12); border-radius: var(--radius);
+    padding: 1.5rem 1.3rem; backdrop-filter: blur(4px);
+  }
+  .ing__dot { width: 42px; height: 42px; border-radius: 12px; display:grid; place-items:center; margin-bottom: .9rem;
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary))); color:#fff; }
+  .ing h4 { margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; color:#fff; }
+  .ing p { margin: 0; font-size: .88rem; color: hsl(192 28% 80%); }
+  .ing__note { margin-top: 1.6rem; font-size: .78rem; color: hsl(192 25% 70%); }
+
+  /* ===========================================================
+     HOW TO USE
+     =========================================================== */
+  .steps { display:grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; counter-reset: s; }
+  .step { position: relative; padding: 1.8rem 1.5rem 1.5rem; border-radius: var(--radius);
+    background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); box-shadow: var(--shadow-sm); }
+  .step__no { counter-increment: s; }
+  .step__no::before {
+    content: "0" counter(s); font-family: var(--font-serif); font-weight: 700; font-size: 2.2rem;
+    color: hsl(var(--primary) / .9); line-height: 1; display:block; margin-bottom: .4rem;
+  }
+  .step h3 { font-size: 1.1rem; font-weight: 800; }
+  .step p { margin: .4rem 0 0; color: hsl(var(--ink-soft)); font-size: .93rem; }
+  .step__visual { height: 70px; display:grid; place-items:center; margin-bottom: .6rem; }
+
+  /* ===========================================================
+     TESTIMONIALS
+     =========================================================== */
+  .voices { background: linear-gradient(180deg, hsl(200 45% 97%), hsl(var(--bg))); }
+  .voice-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; }
+  .voice {
+    background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+    padding: 1.7rem; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap: .9rem;
+  }
+  .voice .stars { font-size: 1rem; }
+  .voice p { margin: 0; font-size: .98rem; }
+  .voice__who { display:flex; align-items:center; gap: .8rem; margin-top: auto; padding-top: .4rem; }
+  .avatar { width: 46px; height: 46px; border-radius: 999px; display:grid; place-items:center; color:#fff; font-weight:800;
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary-deep))); }
+  .voice__who b { display:block; font-size: .92rem; }
+  .voice__who small { color: hsl(var(--muted-foreground)); font-size: .8rem; }
+
+  /* ===========================================================
+     PRICING
+     =========================================================== */
+  .pricing { background: linear-gradient(180deg, hsl(var(--bg)), hsl(200 45% 97%)); }
+  .toggle {
+    display:inline-flex; padding: 5px; border-radius: 999px; background: hsl(var(--muted)); border: 1px solid hsl(var(--border));
+    margin: 0 auto 2rem; gap: 4px;
+  }
+  .toggle button {
+    border: none; background: transparent; padding: .6rem 1.3rem; border-radius: 999px; font-weight: 700; font-size: .92rem;
+    color: hsl(var(--ink-soft)); transition: all .2s ease; position: relative;
+  }
+  .toggle button[aria-pressed="true"] { background: hsl(var(--surface)); color: hsl(var(--primary-deep)); box-shadow: var(--shadow-sm); }
+  .toggle .save { font-size: .68rem; background: hsl(var(--accent) / .25); color: hsl(var(--accent-deep)); padding: .1em .5em; border-radius:999px; margin-left:.4em; }
+  .plan-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1.4rem; max-width: 760px; margin-inline: auto; }
+  .plan {
+    position: relative; background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); border-radius: 22px;
+    padding: 2rem 1.8rem; box-shadow: var(--shadow-sm); display:flex; flex-direction:column;
+  }
+  .plan.featured { border: 2px solid hsl(var(--primary)); box-shadow: var(--shadow-glow); }
+  .plan__tag {
+    position:absolute; top: -14px; left: 50%; translate: -50% 0; background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--primary-deep)));
+    color:#fff; font-size: .76rem; font-weight: 800; padding: .35em 1em; border-radius: 999px; box-shadow: var(--shadow-sm); white-space: nowrap;
+  }
+  .plan h3 { font-size: 1.2rem; font-weight: 800; }
+  .plan__price { display:flex; align-items: baseline; gap: .3rem; margin: .6rem 0 .2rem; }
+  .plan__price .num { font-size: 2.6rem; font-weight: 900; color: hsl(var(--primary-deep)); letter-spacing: -.01em; }
+  .plan__price .unit { font-size: .95rem; color: hsl(var(--ink-soft)); }
+  .plan__sub { font-size: .85rem; color: hsl(var(--muted-foreground)); min-height: 2.4em; }
+  .plan ul { list-style:none; padding: 0; margin: 1.2rem 0 1.5rem; display:grid; gap: .65rem; }
+  .plan ul li { display:flex; gap:.6rem; align-items:flex-start; font-size: .93rem; }
+  .plan ul li svg { color: hsl(var(--primary)); flex:0 0 auto; margin-top:.15rem; }
+  .plan .btn { margin-top: auto; }
+  .pricing__note { text-align:center; font-size:.8rem; color: hsl(var(--muted-foreground)); margin-top: 1.6rem; }
+
+  /* ===========================================================
+     FAQ
+     =========================================================== */
+  .faq-list { max-width: 800px; margin-inline: auto; display:grid; gap: .8rem; }
+  .faq-item { background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); }
+  .faq-q {
+    width:100%; text-align:left; background:transparent; border:none; padding: 1.2rem 1.3rem; display:flex; align-items:center; gap:1rem;
+    font-size: 1rem; font-weight: 700; color: hsl(var(--ink));
+  }
+  .faq-q .qmark { flex:0 0 auto; width: 26px; height:26px; border-radius:8px; display:grid; place-items:center; font-family: var(--font-serif);
+    background: hsl(var(--aqua) / .6); color: hsl(var(--primary-deep)); font-weight: 800; }
+  .faq-q .chev { margin-left:auto; transition: transform .25s ease; color: hsl(var(--muted-foreground)); flex:0 0 auto; }
+  .faq-item[data-open="true"] .chev { transform: rotate(180deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .faq-item[data-open="true"] .faq-a { max-height: 360px; }
+  .faq-a > div { padding: 0 1.3rem 1.25rem 3.3rem; color: hsl(var(--ink-soft)); font-size: .95rem; }
+
+  /* ===========================================================
+     FINAL CTA
+     =========================================================== */
+  .final { position: relative; overflow: hidden;
+    background:
+      radial-gradient(700px 400px at 15% 0%, hsl(var(--mint) / .35), transparent 60%),
+      linear-gradient(150deg, hsl(196 74% 30%), hsl(202 62% 18%)); color:#eaf7fb; }
+  .final__inner { display:grid; grid-template-columns: 1.1fr .9fr; gap: 2.5rem; align-items:center; }
+  .final h2 { color:#fff; font-size: clamp(1.8rem, 4.5vw, 2.8rem); font-weight: 900; }
+  .final p { color: hsl(192 35% 84%); font-size: 1.05rem; margin: 1rem 0 1.8rem; }
+  .final .price-line { display:flex; align-items: baseline; gap:.6rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+  .final .price-line .big { font-size: 2.6rem; font-weight: 900; color:#fff; }
+  .final .price-line .was { text-decoration: line-through; color: hsl(192 30% 70%); }
+  .final .guarantee { display:flex; align-items:center; gap:.6rem; font-size:.9rem; color: hsl(192 35% 82%); margin-top: 1.2rem; }
+  .final__visual { display:grid; place-items:center; position: relative; min-height: 320px; }
+
+  /* ===========================================================
+     FOOTER
+     =========================================================== */
+  footer.site { background: hsl(202 40% 12%); color: hsl(192 22% 72%); padding: 3.5rem 0 2.5rem; }
+  .foot-grid { display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 2rem; }
+  footer .brand { color:#fff; margin-bottom: .8rem; }
+  footer p.lead { font-size: .88rem; line-height: 1.7; max-width: 26em; }
+  .foot-col h5 { color:#fff; font-size: .82rem; letter-spacing: .12em; margin: 0 0 .9rem; text-transform: uppercase; }
+  .foot-col a { display:block; font-size: .88rem; padding: .25rem 0; color: hsl(192 22% 72%); }
+  .foot-col a:hover { color:#fff; }
+  .foot-bottom { border-top: 1px solid hsl(0 0% 100% / .1); margin-top: 2.4rem; padding-top: 1.6rem; display:flex; flex-wrap:wrap; justify-content:space-between; gap:1rem; font-size:.78rem; }
+  .disclaimer { font-size: .74rem; color: hsl(192 18% 58%); line-height: 1.7; margin-top: 1rem; }
+
+  /* Sticky mobile buy bar */
+  .buybar { display:none; }
+
+  /* ===========================================================
+     RESPONSIVE
+     =========================================================== */
+  @media (max-width: 980px) {
+    .hero__grid, .result__grid, .final__inner { grid-template-columns: 1fr; }
+    .hero__stage { order: -1; height: clamp(360px, 70vw, 460px); }
+    .ing-grid, .feat-grid { grid-template-columns: repeat(2, 1fr); }
+    .final__visual { min-height: 240px; }
+  }
+  @media (max-width: 760px) {
+    .nav-links, .nav-cta .btn { display: none; }
+    .hamburger { display: inline-flex; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu {
+      border-bottom: 1px solid hsl(var(--border)); background: hsl(var(--surface));
+      padding: 1rem 0 1.4rem;
+    }
+    .mobile-menu a { display:block; padding: .8rem 0; font-weight:700; border-bottom: 1px dashed hsl(var(--border)); }
+    .mobile-menu .btn { margin-top: 1rem; width: 100%; }
+    .worry-grid, .ing-grid, .steps, .voice-grid, .feat-grid, .plan-grid { grid-template-columns: 1fr; }
+    .price-tag { right: 2%; }
+    .section { padding-bottom: 5.5rem; }
+    .buybar {
+      display:flex; align-items:center; gap:.8rem; position: fixed; left:0; right:0; bottom:0; z-index: 60;
+      background: hsl(var(--surface) / .96); backdrop-filter: blur(10px); border-top: 1px solid hsl(var(--border));
+      padding: .7rem 4vw calc(.7rem + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px -10px hsl(196 50% 20% / .3);
+    }
+    .buybar .info small { display:block; font-size:.68rem; color: hsl(var(--muted-foreground)); }
+    .buybar .info b { font-size: 1.15rem; color: hsl(var(--primary-deep)); }
+    .buybar .btn { flex: 1; padding: .9rem 1rem; }
+  }
+  @media (max-width: 420px) {
+    .hero__meta b { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- React 18 + Babel via CDN（web-artifacts-builderの"React+コンポーネント志向"を体現） -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- file:// やCDN不達でも崩れない静的フォールバック（プログレッシブエンハンス） -->
+<noscript>
+  <style>#root::before{content:"このページはJavaScriptで描画されます。下記の静的版をご覧ください。";display:block;padding:1rem;text-align:center;color:hsl(205 14% 48%)}</style>
+</noscript>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============ アイコン（SVG小コンポーネント群） ============ */
+const Icon = {
+  Sparkle: (p) => (
+    <svg width={p.s||22} height={p.s||22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>
+    </svg>
+  ),
+  Shield: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>),
+  Leaf: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 19c8 1 14-4 14-13 0 0-9-1-13 4-2.5 3-1 9-1 9z"/><path d="M5 19c2-5 5-7 9-9"/></svg>),
+  Wind: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h9a2.5 2.5 0 1 1-2.5 2.5"/></svg>),
+  Drop: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 3s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z"/></svg>),
+  Heart: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 20s-7-4.5-9-9C1.8 8.2 3.5 5 6.5 5c1.9 0 3 1 3.5 2 .5-1 1.6-2 3.5-2 3 0 4.7 3.2 3.5 6-2 4.5-9 9-9 9z"/></svg>),
+  Clock: (p)=>(<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/></svg>),
+  Check: (p)=>(<svg width={p.s||16} height={p.s||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 12.5l4.5 4.5L19 7"/></svg>),
+  Chevron: (p)=>(<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="chev" {...p}><path d="M6 9l6 6 6-6"/></svg>),
+  Truck: (p)=>(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>),
+  Smile: (p)=>(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>),
+};
+
+/* ============ 商品ビジュアル：CSSチューブ ============ */
+function Tube({ floaty=true }) {
+  return (
+    <div className={"tube" + (floaty ? " floaty" : "")} role="img" aria-label="LumiWhite プレミアム歯みがきのチューブ">
+      <div className="tube__cap"></div>
+      <div className="tube__body">
+        <div className="tube__sheen"></div>
+        <div className="tube__label">
+          <div className="tube__brand">Lumi<b>White</b></div>
+          <div className="tube__sub">PREMIUM ORAL CARE</div>
+          <div className="tube__rule"></div>
+          <div className="tube__desc">ホワイトニングケア<br/>口臭ケア・低刺激<br/>ミントフレーバー</div>
+        </div>
+        <div className="tube__band"></div>
+      </div>
+      <div className="tube__seam"></div>
+    </div>
+  );
+}
+
+/* 泡＆きらめきの装飾フィールド */
+function Sparkles() {
+  const items = [
+    {t:'b', s:34, x:'8%', y:'18%', d:'0s'}, {t:'b', s:18, x:'22%', y:'62%', d:'1.2s'},
+    {t:'b', s:24, x:'82%', y:'40%', d:'.6s'}, {t:'b', s:14, x:'70%', y:'78%', d:'1.8s'},
+    {t:'s', s:22, x:'14%', y:'74%', d:'.3s'}, {t:'s', s:16, x:'88%', y:'20%', d:'1s'},
+    {t:'s', s:26, x:'60%', y:'10%', d:'1.6s'}, {t:'s', s:14, x:'40%', y:'86%', d:'.9s'},
+  ];
+  return (
+    <React.Fragment>
+      {items.map((it,i)=> it.t==='b'
+        ? <span key={i} className="bubble twinkly" style={{width:it.s, height:it.s, left:it.x, top:it.y, animationDelay:it.d}}/>
+        : <span key={i} className="sparkle twinkly" style={{left:it.x, top:it.y, animationDelay:it.d}}>
+            <Icon.Sparkle s={it.s}/>
+          </span>
+      )}
+    </React.Fragment>
+  );
+}
+
+function Smile() {
+  return (
+    <svg className="smile" viewBox="0 0 240 150" fill="none" aria-label="さわやかな笑顔のイメージ">
+      <defs>
+        <linearGradient id="lip" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="hsl(8 60% 72%)"/><stop offset="1" stopColor="hsl(2 55% 60%)"/>
+        </linearGradient>
+        <linearGradient id="tooth" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="hsl(190 30% 94%)"/>
+        </linearGradient>
+      </defs>
+      <path d="M20 60 Q120 -10 220 60 Q120 175 20 60 Z" fill="url(#lip)"/>
+      <path d="M40 64 Q120 22 200 64 Q120 120 40 64 Z" fill="#7a1f23"/>
+      <g fill="url(#tooth)" stroke="hsl(190 25% 88%)" strokeWidth="1">
+        {[0,1,2,3,4,5,6,7].map(i=>(
+          <rect key={i} x={48+i*18} y={50} width="16" height={i===0||i===7?20:i===3||i===4?28:25} rx="4"/>
+        ))}
+      </g>
+      <g className="twinkly" fill="hsl(38 64% 60%)">
+        <path d="M170 38 l3 8 8 3 -8 3 -3 8 -3-8 -8-3 8-3z"/>
+      </g>
+      <g className="twinkly" style={{animationDelay:'1s'}} fill="hsl(188 78% 55%)">
+        <path d="M58 30 l2 5 5 2 -5 2 -2 5 -2-5 -5-2 5-2z"/>
+      </g>
+    </svg>
+  );
+}
+
+/* ============ ヘッダー ============ */
+const NAV = [
+  {href:'#features', label:'特徴'},
+  {href:'#ingredients', label:'成分・こだわり'},
+  {href:'#voices', label:'お客様の声'},
+  {href:'#pricing', label:'価格プラン'},
+  {href:'#faq', label:'よくある質問'},
+];
+function Header() {
+  const [open, setOpen] = useState(false);
+  return (
+    <header className="site">
+      <div className="wrap nav">
+        <a href="#top" className="brand">
+          <span className="mark"><Icon.Sparkle s={20}/></span>
+          <span>Lumi<b>White</b></span>
+        </a>
+        <nav className="nav-links">
+          {NAV.map(n=> <a key={n.href} href={n.href}>{n.label}</a>)}
+        </nav>
+        <div className="nav-cta">
+          <a className="btn btn-primary" href="#pricing">初回980円で試す</a>
+          <button className="hamburger" aria-label="メニューを開く" aria-expanded={open} onClick={()=>setOpen(o=>!o)}>
+            <span></span>
+          </button>
+        </div>
+      </div>
+      <div className={"mobile-menu" + (open ? " open" : "")}>
+        <div className="wrap">
+          {NAV.map(n=> <a key={n.href} href={n.href} onClick={()=>setOpen(false)}>{n.label}</a>)}
+          <a className="btn btn-primary" href="#pricing" onClick={()=>setOpen(false)}>初回980円で試す</a>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ============ ヒーロー / FV ============ */
+function Hero() {
+  return (
+    <section className="hero" id="top">
+      <div className="wrap hero__grid">
+        <div className="hero__copy">
+          <span className="eyebrow">Premium Oral Care</span>
+          <h1>毎日に、<br/><span className="hl">透明感のある</span><br/>口もとを。</h1>
+          <p className="hero__lead">
+            ホワイトニングケア・口臭ケア・低刺激にこだわった、大人のためのプレミアム歯みがき。
+            心地よいミントフレーバーで、忙しい朝も夜も気持ちよく続けられます。
+          </p>
+          <div className="hero__cta">
+            <a className="btn btn-primary btn-lg" href="#pricing">初回980円ではじめる</a>
+            <a className="btn btn-ghost btn-lg" href="#features">特徴を見る</a>
+          </div>
+          <div className="trust-row">
+            <span className="stars">★★★★★</span>
+            <span>満足度の高いレビュー多数 ／ 30日間サポート付き</span>
+          </div>
+          <div className="hero__meta">
+            <div><b>1,980</b><small>円(税込)／本</small></div>
+            <div><b>980</b><small>円 定期初回</small></div>
+            <div><b>低刺激</b><small>毎日使いやすい処方</small></div>
+          </div>
+        </div>
+        <div className="hero__stage">
+          <div className="hero__halo"></div>
+          <div className="hero__ring floaty"></div>
+          <Sparkles/>
+          <Tube/>
+          <div className="price-tag">
+            <small>定期初回</small>
+            <div className="now">¥980<em>(税込)</em></div>
+            <div className="was">通常 ¥1,980</div>
+          </div>
+          <div className="badge-float"><Icon.Leaf/> 低刺激・無着色</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 信頼ストリップ ============ */
+function Strip() {
+  const items = [
+    {i:<Icon.Sparkle s={18}/>, t:'ホワイトニングケア'},
+    {i:<Icon.Wind/>, t:'口臭ケア'},
+    {i:<Icon.Shield/>, t:'低刺激処方'},
+    {i:<Icon.Drop/>, t:'ミントフレーバー'},
+    {i:<Icon.Heart/>, t:'毎日続けやすい'},
+  ];
+  return (
+    <div className="strip">
+      <div className="wrap strip__inner">
+        {items.map((x,i)=>(<div className="strip__item" key={i}>{x.i}<span>{x.t}</span></div>))}
+      </div>
+    </div>
+  );
+}
+
+/* ============ 悩みへの共感 ============ */
+function Empathy() {
+  const worries = [
+    'コーヒーやワインで、歯の色が気になってきた気がする。',
+    '会話の前、自分の口もとのニオイがふと心配になる。',
+    '刺激が強い歯みがきは苦手。でもケアはしっかりしたい。',
+  ];
+  return (
+    <section className="section empathy" id="worry">
+      <div className="wrap">
+        <div className="section-head center">
+          <span className="eyebrow">Your Worries</span>
+          <h2>その口もとの小さな不安、<br/>毎日のケアから見直しませんか。</h2>
+          <p>年齢を重ねるほど、口もとの印象は第一印象を左右します。我慢でも、特別なことでもなく。</p>
+        </div>
+        <div className="worry-grid">
+          {worries.map((w,i)=>(
+            <div className="worry" key={i}><div className="q">Q</div><p>{w}</p></div>
+          ))}
+        </div>
+        <p className="empathy__bridge">そのすべてに、毎日の一本で、ていねいに向き合う。</p>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 特徴（4つ以上） ============ */
+function Features() {
+  const feats = [
+    {icon:<Icon.Sparkle/>, cls:'', t:'ホワイトニングケア', d:'清掃成分が着色汚れ（ステイン）をやさしく除去。歯本来の白さと、つるんとした手ざわりをサポートします。'},
+    {icon:<Icon.Wind/>, cls:'', t:'気になる口臭をケア', d:'口臭の原因にアプローチする処方で、息のさわやかさをキープ。会話のシーンにも自信を添えます。'},
+    {icon:<Icon.Shield/>, cls:'alt', t:'毎日うれしい低刺激', d:'刺激を抑えたまろやかな使い心地。歯ぐきにやさしく、朝晩しっかり磨きたい方にも続けやすい設計です。'},
+    {icon:<Icon.Drop/>, cls:'', t:'心地よいミントフレーバー', d:'爽快すぎず、ほどよく澄んだ後味。使うたびにリフレッシュできる、上質なミントの香味に仕上げました。'},
+    {icon:<Icon.Heart/>, cls:'alt', t:'歯ぐきまで考えたケア', d:'歯みがきのたびに、歯と歯ぐきの健やかさを意識したケアを。トータルでお口の環境を整えます。'},
+    {icon:<Icon.Clock/>, cls:'', t:'忙しい毎日に続けやすい', d:'特別な手間は不要。いつもの歯みがきを置き換えるだけ。続けることを前提にしたシンプル設計です。'},
+  ];
+  return (
+    <section className="section" id="features">
+      <div className="wrap">
+        <div className="section-head">
+          <span className="eyebrow">Why LumiWhite</span>
+          <h2>大人の口もとに、<br/>ちょうどいい6つの理由。</h2>
+          <p>「白さ」「息」「やさしさ」「心地よさ」を一本に。毎日のケアを上質な習慣へ。</p>
+        </div>
+        <div className="feat-grid">
+          {feats.map((f,i)=>(
+            <div className="feat" key={i}>
+              <div className={"feat__icon " + f.cls}>{f.icon}</div>
+              <div><h3>{f.t}</h3><p>{f.d}</p></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 使用後イメージ ============ */
+function Result() {
+  const list = [
+    ['ふと笑ったときの、','口もとの印象に自信。'],
+    ['会話の距離が近づいても、','さわやかな息づかい。'],
+    ['鏡を見るのが、','少し楽しみになる毎日。'],
+    ['上質なケア習慣で、','自分をていねいに扱う時間。'],
+  ];
+  return (
+    <section className="section result" id="after">
+      <div className="wrap result__grid">
+        <div className="smile-card">
+          <Sparkles/>
+          <Smile/>
+        </div>
+        <div>
+          <span className="eyebrow">After Image</span>
+          <h2 style={{fontSize:'clamp(1.6rem,4vw,2.4rem)', fontWeight:800, margin:'.5rem 0 .4rem'}}>
+            続けた先にある、<br/>あなたらしい笑顔へ。
+          </h2>
+          <p style={{color:'hsl(var(--ink-soft))', margin:0}}>
+            毎日の積み重ねが、口もとの印象をそっと支えます。無理なく続けられるから、変化を感じる時間も自然と訪れます。
+          </p>
+          <ul className="checklist">
+            {list.map((t,i)=>(
+              <li key={i}><span className="ck"><Icon.Check s={15}/></span><span><b>{t[0]}</b>{t[1]}</span></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 成分・こだわり ============ */
+function Ingredients() {
+  const ing = [
+    {i:<Icon.Sparkle/>, t:'清掃成分', d:'着色汚れにアプローチし、歯の表面をなめらかに整えるための清掃成分を配合。'},
+    {i:<Icon.Leaf/>, t:'植物由来うるおい成分', d:'お口の中の心地よさを考え、うるおいを与える植物由来成分をやさしくブレンド。'},
+    {i:<Icon.Wind/>, t:'フレッシュミント香味', d:'澄んだ後味の天然系ミント香味。爽快感とまろやかさのバランスにこだわりました。'},
+    {i:<Icon.Shield/>, t:'低刺激設計', d:'毎日続けることを前提に、刺激を抑えたまろやかな使用感へと処方を調整。'},
+  ];
+  return (
+    <section className="section ingredients" id="ingredients">
+      <div className="wrap">
+        <div className="section-head">
+          <span className="eyebrow">Ingredients &amp; Craft</span>
+          <h2>毎日使うものだから、<br/>中身にこだわりました。</h2>
+          <p>「白さ」「さわやかさ」「やさしさ」を支える成分設計。心地よく続けられることを、いちばんに考えています。</p>
+        </div>
+        <div className="ing-grid">
+          {ing.map((x,i)=>(
+            <div className="ing" key={i}>
+              <div className="ing__dot">{x.i}</div>
+              <h4>{x.t}</h4><p>{x.d}</p>
+            </div>
+          ))}
+        </div>
+        <p className="ing__note">※ 本品は化粧品（歯みがき類）です。記載の成分・特長は製品設計の方針を示すもので、効果・効能を保証するものではありません。お口に合わない場合はご使用を中止してください。</p>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 使い方 ============ */
+function HowTo() {
+  const steps = [
+    {v:<Brush/>, t:'適量をとる', d:'ブラシに、約1cmを目安にLumiWhiteをとります。乾いたブラシでもOKです。'},
+    {v:<BubbleCluster/>, t:'やさしく磨く', d:'歯と歯ぐきの境目を意識しながら、2〜3分かけてていねいに磨きます。'},
+    {v:<RinseDrop/>, t:'軽くすすぐ', d:'仕上げに軽くすすいで完了。爽快な後味が、お口に心地よく広がります。'},
+  ];
+  return (
+    <section className="section" id="howto">
+      <div className="wrap">
+        <div className="section-head center">
+          <span className="eyebrow">How to Use</span>
+          <h2>使い方は、いつもどおり。<br/>置き換えるだけ。</h2>
+          <p>特別な手順は不要です。毎日の歯みがきを、LumiWhiteに替えるだけ。</p>
+        </div>
+        <div className="steps">
+          {steps.map((s,i)=>(
+            <div className="step" key={i}>
+              <div className="step__visual">{s.v}</div>
+              <div className="step__no"></div>
+              <h3>{s.t}</h3><p>{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+function Brush(){ return (<div className="brush"><div className="brush__handle"></div><div className="brush__neck"></div><div className="brush__head"></div><div className="brush__bristles"></div><div className="brush__paste"></div></div>); }
+function BubbleCluster(){
+  return (<div style={{position:'relative', width:90, height:60}}>
+    {[{s:30,x:8,y:14},{s:20,x:40,y:4},{s:16,x:58,y:28},{s:24,x:30,y:30}].map((b,i)=>(
+      <span key={i} className="bubble twinkly" style={{width:b.s,height:b.s,left:b.x,top:b.y,animationDelay:`${i*0.4}s`}}/>
+    ))}
+  </div>);
+}
+function RinseDrop(){
+  return (<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z" fill="hsl(var(--aqua) / .5)"/><path d="M9.5 13a2.5 2.5 0 0 0 2.5 2.5"/></svg>);
+}
+
+/* ============ お客様の声（3件以上） ============ */
+function Voices() {
+  const voices = [
+    {n:'M.K さん', a:'30代・会社員', c:'hsl(188 60% 45%)', s:5, q:'刺激が強いものが苦手でしたが、これはまろやかで毎日続けられています。磨いたあとのつるっとした感じが気に入っています。'},
+    {n:'S.T さん', a:'40代・自営業', c:'hsl(38 60% 52%)', s:5, q:'人と話す機会が多いので、息のさわやかさが続く感覚が安心。パッケージも上質で、洗面台に置いていて気分が上がります。'},
+    {n:'A.Y さん', a:'20代・看護師', c:'hsl(162 50% 45%)', s:4, q:'夜勤明けでも後味がすっきり。ミントが爽快すぎず、ちょうどいいです。定期初回がお手頃で始めやすかったです。'},
+    {n:'R.N さん', a:'30代・主婦', c:'hsl(205 45% 40%)', s:5, q:'家族みんなで使っています。低刺激なので子どもの仕上げみがき後の自分用にも。コーヒー好きの私にうれしい習慣になりました。'},
+  ];
+  return (
+    <section className="section voices" id="voices">
+      <div className="wrap">
+        <div className="section-head center">
+          <span className="eyebrow">Customer Voices</span>
+          <h2>使う人の毎日に、<br/>静かな自信を。</h2>
+          <p>LumiWhiteを毎日の習慣に取り入れた方々から届いた声をご紹介します。</p>
+        </div>
+        <div className="voice-grid">
+          {voices.map((v,i)=>(
+            <div className="voice" key={i}>
+              <span className="stars">{'★'.repeat(v.s)}<span style={{color:'hsl(var(--border))'}}>{'★'.repeat(5-v.s)}</span></span>
+              <p>「{v.q}」</p>
+              <div className="voice__who">
+                <span className="avatar" style={{background:`linear-gradient(135deg, ${v.c}, hsl(var(--primary-deep)))`}}>{v.n[0]}</span>
+                <span><b>{v.n}</b><small>{v.a}</small></span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{textAlign:'center', fontSize:'.78rem', color:'hsl(var(--muted-foreground))', marginTop:'1.6rem'}}>
+          ※ 個人の感想であり、使用感には個人差があります。効果・効能を示すものではありません。
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 価格プラン（トグル付き） ============ */
+function Pricing() {
+  const [plan, setPlan] = useState('subscribe'); // subscribe | single
+  return (
+    <section className="section pricing" id="pricing">
+      <div className="wrap">
+        <div className="section-head center">
+          <span className="eyebrow">Pricing</span>
+          <h2>はじめやすい、<br/>2つの購入プラン。</h2>
+          <p>まずはお得な定期便でお試しを。1本ずつの都度購入もお選びいただけます。</p>
+        </div>
+        <div style={{display:'flex', justifyContent:'center'}}>
+          <div className="toggle" role="tablist" aria-label="購入プランの切り替え">
+            <button role="tab" aria-pressed={plan==='subscribe'} onClick={()=>setPlan('subscribe')}>
+              定期便<span className="save">最大50%OFF</span>
+            </button>
+            <button role="tab" aria-pressed={plan==='single'} onClick={()=>setPlan('single')}>
+              都度購入
+            </button>
+          </div>
+        </div>
+
+        <div className="plan-grid">
+          {plan==='subscribe' ? (
+            <React.Fragment>
+              <div className="plan featured">
+                <span className="plan__tag">人気No.1 ／ 初回50%OFF</span>
+                <h3>定期便コース</h3>
+                <div className="plan__price"><span className="num">¥980</span><span className="unit">／初回(税込)</span></div>
+                <p className="plan__sub">2回目以降は ¥1,680（税込）。お届け周期は変更・お休み可能です。</p>
+                <ul>
+                  <li><Icon.Check/> 初回 ¥980（通常 ¥1,980）</li>
+                  <li><Icon.Check/> 2回目以降ずっと ¥1,680</li>
+                  <li><Icon.Check/> 全国送料無料でお届け</li>
+                  <li><Icon.Check/> 周期変更・スキップ・休止OK</li>
+                  <li><Icon.Check/> 回数のしばりなし</li>
+                </ul>
+                <a className="btn btn-primary btn-block btn-lg" href="#final">この内容ではじめる</a>
+              </div>
+              <div className="plan">
+                <h3>定期便コース ／ まとめ</h3>
+                <div className="plan__price"><span className="num">¥3,160</span><span className="unit">／2本(税込)</span></div>
+                <p className="plan__sub">ご家族・ご夫婦での共有に。2本セットでさらに続けやすく。</p>
+                <ul>
+                  <li><Icon.Check/> 初回2本セットがお得</li>
+                  <li><Icon.Check/> 2回目以降も割引価格</li>
+                  <li><Icon.Check/> 全国送料無料</li>
+                  <li><Icon.Check/> 周期変更・休止OK</li>
+                </ul>
+                <a className="btn btn-ghost btn-block btn-lg" href="#final">2本セットを選ぶ</a>
+              </div>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <div className="plan">
+                <h3>1本 都度購入</h3>
+                <div className="plan__price"><span className="num">¥1,980</span><span className="unit">／本(税込)</span></div>
+                <p className="plan__sub">まずは1本だけ試したい方に。継続のお約束はありません。</p>
+                <ul>
+                  <li><Icon.Check/> 1本ずつ必要なときに購入</li>
+                  <li><Icon.Check/> 継続のしばりなし</li>
+                  <li><Icon.Check/> いつでも注文OK</li>
+                </ul>
+                <a className="btn btn-ghost btn-block btn-lg" href="#final">1本を購入する</a>
+              </div>
+              <div className="plan featured">
+                <span className="plan__tag">いちばんお得</span>
+                <h3>3本 まとめ買い</h3>
+                <div className="plan__price"><span className="num">¥5,280</span><span className="unit">／3本(税込)</span></div>
+                <p className="plan__sub">1本あたり ¥1,760。ストックしておきたい方におすすめ。</p>
+                <ul>
+                  <li><Icon.Check/> まとめ買いで1本あたりお得</li>
+                  <li><Icon.Check/> 送料無料でお届け</li>
+                  <li><Icon.Check/> 継続のしばりなし</li>
+                </ul>
+                <a className="btn btn-primary btn-block btn-lg" href="#final">3本まとめて購入</a>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+        <p className="pricing__note">表示はすべて税込価格です。定期便はいつでも変更・休止が可能で、購入回数のしばりはありません。価格・内容は予告なく変更される場合があります。</p>
+      </div>
+    </section>
+  );
+}
+
+/* ============ FAQ（5問以上・開閉） ============ */
+function Faq() {
+  const faqs = [
+    {q:'毎日使っても大丈夫ですか？', a:'はい。毎日のご使用を前提に、刺激を抑えたまろやかな使い心地に設計しています。朝晩の歯みがきにお使いいただけます。お口に合わない場合は使用を中止してください。'},
+    {q:'刺激は強くありませんか？', a:'低刺激設計のため、爽快感はありつつもまろやかな使用感です。強い刺激が苦手な方にも続けていただきやすい味わいを目指しています。'},
+    {q:'定期便はいつでも解約できますか？', a:'購入回数のしばりはございません。次回お届け予定日の一定期間前までにご連絡いただければ、周期変更・お休み・解約が可能です。'},
+    {q:'子どもや家族と一緒に使えますか？', a:'低刺激でミントのまろやかな香味のため、ご家族での共有にもお選びいただけます。お子さまのご使用は保護者の方の管理のもとでお願いします。'},
+    {q:'どのくらいで使い切りますか？', a:'1日2回・適量のご使用で、1本あたりおよそ1か月が目安です。ご使用量や回数によって個人差があります。'},
+    {q:'送料はかかりますか？', a:'定期便および対象のまとめ買いは全国送料無料でお届けします。都度購入の場合の送料は購入手続き画面にてご確認ください。'},
+    {q:'返品・サポートはありますか？', a:'未開封・未使用品については、お届けから一定期間内であればご相談を承ります。詳しくはサポート窓口までお問い合わせください。'},
+  ];
+  const [open, setOpen] = useState(0);
+  return (
+    <section className="section" id="faq">
+      <div className="wrap">
+        <div className="section-head center">
+          <span className="eyebrow">FAQ</span>
+          <h2>よくあるご質問</h2>
+          <p>はじめての方からよくいただくご質問をまとめました。</p>
+        </div>
+        <div className="faq-list">
+          {faqs.map((f,i)=>(
+            <div className="faq-item" key={i} data-open={open===i}>
+              <button className="faq-q" aria-expanded={open===i} onClick={()=>setOpen(open===i? -1 : i)}>
+                <span className="qmark">Q</span><span>{f.q}</span><Icon.Chevron/>
+              </button>
+              <div className="faq-a"><div>{f.a}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============ 最後の購入CTA ============ */
+function FinalCta() {
+  return (
+    <section className="section final" id="final">
+      <div className="wrap final__inner">
+        <div>
+          <span className="eyebrow" style={{color:'hsl(var(--accent))'}}>Start Today</span>
+          <h2>今日から、口もとの<br/>新しい習慣を。</h2>
+          <p>まずはお得な定期初回 ¥980 から。続けやすさも、上質な使い心地も、毎日のあなたに。</p>
+          <div className="price-line">
+            <span className="big">¥980</span><span style={{color:'hsl(192 35% 84%)'}}>(税込) 定期初回</span>
+            <span className="was">通常 ¥1,980</span>
+          </div>
+          <div className="hero__cta">
+            <a className="btn btn-primary btn-lg" href="#pricing">定期初回980円で申し込む</a>
+            <a className="btn btn-ghost btn-lg" href="#pricing" style={{background:'transparent', color:'#fff', borderColor:'hsl(0 0% 100% / .4)'}}>プランを比べる</a>
+          </div>
+          <div className="guarantee"><Icon.Truck/> 全国送料無料 ／ 回数しばりなし ／ いつでも休止・解約OK</div>
+        </div>
+        <div className="final__visual">
+          <Sparkles/>
+          <Tube/>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============ フッター ============ */
+function Footer() {
+  const cols = [
+    {h:'商品', links:['特徴','成分・こだわり','使い方','お客様の声']},
+    {h:'購入', links:['価格プラン','定期便について','よくある質問','お問い合わせ']},
+    {h:'会社情報', links:['ブランドについて','特定商取引法に基づく表記','プライバシーポリシー','利用規約']},
+  ];
+  return (
+    <footer className="site">
+      <div className="wrap">
+        <div className="foot-grid">
+          <div>
+            <div className="brand"><span className="mark"><Icon.Sparkle s={18}/></span><span>Lumi<b style={{color:'hsl(var(--accent))'}}>White</b></span></div>
+            <p className="lead">毎日に、透明感のある口もとを。ホワイトニングケア・口臭ケア・低刺激にこだわった、大人のためのプレミアム歯みがき。</p>
+          </div>
+          {cols.map((c,i)=>(
+            <div className="foot-col" key={i}>
+              <h5>{c.h}</h5>
+              {c.links.map((l,j)=> <a href="#top" key={j}>{l}</a>)}
+            </div>
+          ))}
+        </div>
+        <p className="disclaimer">
+          ※ 本品は化粧品（歯みがき類）です。本ページの表現は商品の特長を紹介するものであり、医薬品的な効果・効能を保証するものではありません。
+          使用感・実感には個人差があります。お口に異常を感じた場合はご使用を中止し、必要に応じて専門家にご相談ください。
+          掲載の価格・キャンペーン内容は予告なく変更される場合があります。これは実在しない架空ブランドのデモ用ランディングページです。
+        </p>
+        <div className="foot-bottom">
+          <span>© 2026 LumiWhite (架空ブランド・デモ). All rights reserved.</span>
+          <span>透明感のある毎日へ。</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ============ モバイル固定購入バー ============ */
+function BuyBar() {
+  return (
+    <div className="buybar">
+      <div className="info"><small>定期初回（税込）</small><b>¥980</b></div>
+      <a className="btn btn-primary" href="#pricing">今すぐ試す</a>
+    </div>
+  );
+}
+
+/* ============ App ============ */
+function App() {
+  return (
+    <React.Fragment>
+      <Header/>
+      <main>
+        <Hero/>
+        <Strip/>
+        <Empathy/>
+        <Features/>
+        <Result/>
+        <Ingredients/>
+        <HowTo/>
+        <Voices/>
+        <Pricing/>
+        <Faq/>
+        <FinalCta/>
+      </main>
+      <Footer/>
+      <BuyBar/>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

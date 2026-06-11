@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<!--
+  ════════════════════════════════════════════════════════════════════════════
+  Minutes AI — Landing Page
+  番外実験: algorithmic-art スキルをLP制作に転用
+
+  ■ 適用したスキルの作法
+    1. ALGORITHMIC PHILOSOPHY を先に定義（下記コメント参照）
+    2. CONCEPTUAL SEED（会議の声が議事録へ結晶化する＝音声→構造化テキスト）を
+       目に見えないパラメータとして織り込む
+    3. p5.js + seeded randomness（Art Blocks パターン）で生成ビジュアルを描画
+    4. パラメトリックな造形 / emergent behavior / controlled chaos
+
+  ■ ALGORITHMIC PHILOSOPHY:「Convergent Murmuration（収束する囁き）」
+    会議とは無数の声が空間に漂い、やがて一本の議事録へと収束していく現象である。
+    本作はその瞬間を計算過程として表現する。Perlin ノイズで構成された流れ場の上を、
+    数百の粒子（＝発話の断片）が漂う。粒子はランダムに生まれ、見えない力に導かれ、
+    画面中央の「構造化された軸」へと引き寄せられていく——混沌（生の会話）から
+    秩序（要約された議事録）への相転移。速い粒子は明るく燃え、減速し収束した
+    粒子は静かに沈む。すべてのパラメータは熟達した生成アーティストが無数の反復で
+    磨き上げたかのように調律され、シードごとに固有でありながら必然的な美を生む。
+  ════════════════════════════════════════════════════════════════════════════
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minutes AI — 会議を、自動で議事録に。AI議事録SaaS</title>
+<meta name="description" content="Minutes AI は会議の録音から文字起こし・要約・タスク抽出までを自動化するAI議事録SaaS。Web会議も対面も、終了と同時に共有できる議事録が完成します。">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e1330;
+  --ink-soft:#3a4163;
+  --muted:#6b7392;
+  --line:#e6e8f2;
+  --bg:#ffffff;
+  --bg-soft:#f6f7fc;
+  --bg-deep:#070a1f;
+  /* generative palette — 流れ場の配色と統一 */
+  --brand:#5b6cff;
+  --brand-2:#8a5bff;
+  --aqua:#22d3ee;
+  --mint:#34e0a1;
+  --amber:#ffb14e;
+  --grad: linear-gradient(135deg,#5b6cff 0%,#8a5bff 55%,#22d3ee 110%);
+  --shadow: 0 18px 50px -20px rgba(28,33,82,.35);
+  --shadow-sm: 0 8px 24px -14px rgba(28,33,82,.3);
+  --radius: 18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter','Noto Sans JP',sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img,canvas{display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand);
+}
+.eyebrow::before{content:"";width:22px;height:2px;border-radius:2px;background:var(--grad)}
+h1,h2,h3{font-family:'Inter','Noto Sans JP',sans-serif;letter-spacing:-.01em}
+.section{padding:118px 0}
+.section-head{max-width:640px;margin:0 auto 64px;text-align:center}
+.section-head h2{font-size:clamp(28px,3.6vw,42px);font-weight:800;line-height:1.25;margin:16px 0 14px}
+.section-head p{color:var(--muted);font-size:16px}
+
+/* ── Buttons ─────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-weight:700;font-size:15px;border:none;cursor:pointer;
+  padding:15px 28px;border-radius:12px;transition:.25s ease;white-space:nowrap;
+}
+.btn-primary{
+  color:#fff;background:var(--grad);background-size:160% 160%;
+  box-shadow:0 14px 30px -10px rgba(91,108,255,.6);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -10px rgba(91,108,255,.7);background-position:100% 0}
+.btn-ghost{color:var(--ink);background:rgba(255,255,255,.7);border:1px solid var(--line)}
+.btn-ghost:hover{background:#fff;border-color:#cdd2ea;transform:translateY(-2px)}
+.btn-light{color:var(--ink);background:#fff}
+.btn-light:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.btn-lg{padding:18px 38px;font-size:16.5px;border-radius:14px}
+
+/* ── Header ──────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:saturate(180%) blur(14px);
+  background:rgba(255,255,255,.78);
+  border-bottom:1px solid transparent;transition:.3s;
+}
+header.scrolled{border-bottom-color:var(--line);box-shadow:0 6px 24px -18px rgba(20,24,60,.5)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px;letter-spacing:-.02em}
+.logo-mark{width:34px;height:34px;border-radius:9px;background:var(--grad);position:relative;box-shadow:0 6px 14px -4px rgba(91,108,255,.6)}
+.logo-mark::before,.logo-mark::after{content:"";position:absolute;background:rgba(255,255,255,.92);border-radius:2px}
+.logo-mark::before{width:16px;height:2.4px;top:12px;left:9px;box-shadow:0 5px 0 rgba(255,255,255,.92),0 10px 0 rgba(255,255,255,.55)}
+.logo-mark::after{width:7px;height:7px;border-radius:50%;top:9.5px;left:21px;background:var(--mint)}
+.nav-links{display:flex;align-items:center;gap:34px}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);transition:.2s}
+.nav-links a:hover{color:var(--brand)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.nav-cta .login{font-size:14.5px;font-weight:600;color:var(--ink-soft)}
+.nav-cta .login:hover{color:var(--brand)}
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px}
+.burger span{width:24px;height:2.4px;background:var(--ink);border-radius:2px;transition:.3s}
+
+/* ── Hero ────────────────────────────────────── */
+.hero{position:relative;background:var(--bg-deep);color:#fff;overflow:hidden;isolation:isolate}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 78% 18%,rgba(91,108,255,.20),transparent 60%),
+    radial-gradient(800px 600px at 12% 90%,rgba(34,211,238,.14),transparent 60%),
+    linear-gradient(180deg,rgba(7,10,31,.30) 0%,rgba(7,10,31,.55) 70%,rgba(7,10,31,.92) 100%);
+}
+.hero-inner{position:relative;z-index:2;padding:104px 0 124px;text-align:center}
+.hero .badge{
+  display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;
+  padding:8px 16px;border-radius:999px;color:#dfe4ff;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(6px);margin-bottom:26px;
+}
+.hero .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
+.hero h1{
+  font-size:clamp(34px,6vw,68px);font-weight:800;line-height:1.12;
+  letter-spacing:-.025em;margin-bottom:22px;
+}
+.hero h1 .grad{
+  background:linear-gradient(110deg,#8ab4ff,#9d7bff 40%,#5be0c4);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{font-size:clamp(16px,2vw,19px);color:#c3c8e6;max-width:620px;margin:0 auto 38px}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-note{margin-top:20px;font-size:13px;color:#8b90b8}
+.hero-stats{
+  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+  margin-top:64px;
+}
+.stat{
+  flex:1;min-width:150px;max-width:230px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);
+  border-radius:16px;padding:22px 18px;backdrop-filter:blur(8px);text-align:center;
+}
+.stat .num{font-size:30px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(120deg,#fff,#aeb8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .lbl{font-size:12.5px;color:#a4aace;margin-top:4px}
+
+/* trust bar */
+.trust{background:var(--bg-deep);padding:0 0 70px;position:relative;z-index:2}
+.trust .wrap{text-align:center}
+.trust p{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#6f76a0;margin-bottom:22px;font-weight:600}
+.logos{display:flex;flex-wrap:wrap;gap:18px 44px;align-items:center;justify-content:center;opacity:.8}
+.logos .co{display:flex;align-items:center;gap:9px;color:#c4cae8;font-weight:700;font-size:17px;letter-spacing:-.01em}
+.logos .co i{width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#7d8bff,#39d6ee);display:inline-block;font-style:normal}
+
+/* ── Features ────────────────────────────────── */
+.features{background:#fff}
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.fcard{
+  position:relative;border:1px solid var(--line);border-radius:var(--radius);
+  padding:34px 32px;background:#fff;transition:.3s;overflow:hidden;
+}
+.fcard::after{content:"";position:absolute;inset:0;border-radius:var(--radius);
+  padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.3s}
+.fcard:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+.fcard:hover::after{opacity:1}
+.ficon{
+  width:54px;height:54px;border-radius:14px;display:grid;place-items:center;
+  font-size:26px;margin-bottom:20px;
+  background:linear-gradient(135deg,rgba(91,108,255,.14),rgba(34,211,238,.14));
+}
+.fcard h3{font-size:20px;font-weight:700;margin-bottom:10px}
+.fcard p{color:var(--muted);font-size:14.5px}
+.fcard .tag{display:inline-block;margin-top:16px;font-size:12px;font-weight:700;color:var(--brand);
+  background:rgba(91,108,255,.08);padding:5px 11px;border-radius:8px}
+
+/* ── How / scenes ───────────────────────────── */
+.scenes{background:var(--bg-soft)}
+.scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.scard{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:0;overflow:hidden;transition:.3s;
+}
+.scard:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.scard .top{height:128px;position:relative;display:grid;place-items:center;font-size:46px;color:#fff}
+.scard:nth-child(1) .top{background:linear-gradient(135deg,#5b6cff,#8a5bff)}
+.scard:nth-child(2) .top{background:linear-gradient(135deg,#0ea5e9,#22d3ee)}
+.scard:nth-child(3) .top{background:linear-gradient(135deg,#7c3aed,#ec5fa0)}
+.scard .top::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(120px 80px at 80% 20%,rgba(255,255,255,.35),transparent 60%)}
+.scard .body{padding:26px 26px 30px}
+.scard h3{font-size:18px;font-weight:700;margin-bottom:9px}
+.scard p{color:var(--muted);font-size:14px}
+.scard ul{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.scard li{font-size:13.5px;color:var(--ink-soft);display:flex;gap:9px;align-items:flex-start}
+.scard li::before{content:"✓";color:var(--mint);font-weight:800;margin-top:1px}
+
+/* ── Benefits / flow ────────────────────────── */
+.benefits{background:#fff}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:70px}
+.step{position:relative;text-align:center;padding:8px}
+.step .ring{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;
+  font-weight:800;font-size:20px;color:#fff;background:var(--grad);
+  box-shadow:0 12px 26px -10px rgba(91,108,255,.6);position:relative;z-index:2;
+}
+.step:not(:last-child)::after{content:"";position:absolute;top:32px;left:60%;width:80%;height:2px;
+  background:linear-gradient(90deg,var(--brand),transparent);z-index:1}
+.step h4{font-size:16px;font-weight:700;margin-bottom:6px}
+.step p{font-size:13.5px;color:var(--muted)}
+.benefit-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.bcard{border:1px solid var(--line);border-radius:var(--radius);padding:30px 28px;background:var(--bg-soft)}
+.bcard .big{font-size:38px;font-weight:800;letter-spacing:-.02em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bcard h4{font-size:17px;font-weight:700;margin:8px 0 8px}
+.bcard p{font-size:14px;color:var(--muted)}
+
+/* ── Pricing ────────────────────────────────── */
+.pricing{background:var(--bg-soft)}
+.toggle{display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:48px;font-size:14px;font-weight:600;color:var(--ink-soft)}
+.switch{width:54px;height:30px;border-radius:999px;background:var(--brand);position:relative;cursor:pointer;border:none;transition:.3s}
+.switch .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.3s;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.switch.year .knob{left:27px}
+.save-badge{font-size:12px;font-weight:700;color:var(--mint);background:rgba(52,224,161,.13);padding:4px 10px;border-radius:8px}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch}
+.pcard{
+  background:#fff;border:1px solid var(--line);border-radius:22px;padding:36px 32px;
+  display:flex;flex-direction:column;transition:.3s;position:relative;
+}
+.pcard:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.pcard.featured{border:none;color:#fff;background:linear-gradient(160deg,#1a1f4d 0%,#10142f 100%);box-shadow:0 30px 60px -24px rgba(30,36,90,.6)}
+.pcard.featured::before{content:"おすすめ";position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  background:var(--grad);color:#fff;font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;box-shadow:0 8px 18px -8px rgba(91,108,255,.7)}
+.pname{font-size:15px;font-weight:700;letter-spacing:.02em}
+.pdesc{font-size:13px;color:var(--muted);margin:6px 0 22px;min-height:38px}
+.pcard.featured .pdesc{color:#aeb4e0}
+.pprice{display:flex;align-items:flex-end;gap:6px;margin-bottom:4px}
+.pprice .cur{font-size:20px;font-weight:700;margin-bottom:7px}
+.pprice .amt{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.pprice .per{font-size:14px;color:var(--muted);margin-bottom:7px}
+.pcard.featured .pprice .per{color:#aeb4e0}
+.pmeta{font-size:12.5px;color:var(--muted);margin-bottom:26px}
+.pcard.featured .pmeta{color:#9aa0cf}
+.pfeat{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:30px;flex:1}
+.pfeat li{font-size:14px;display:flex;gap:11px;align-items:flex-start;color:var(--ink-soft)}
+.pcard.featured .pfeat li{color:#dde0f4}
+.pfeat li .ck{flex:0 0 18px;height:18px;border-radius:50%;background:rgba(52,224,161,.16);color:var(--mint);
+  display:grid;place-items:center;font-size:11px;font-weight:800;margin-top:2px}
+.pcard.featured .pfeat li .ck{background:rgba(52,224,161,.22)}
+
+/* ── FAQ ────────────────────────────────────── */
+.faq{background:#fff}
+.faq-list{max-width:820px;margin:0 auto}
+.qa{border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden;background:#fff;transition:.25s}
+.qa.open{border-color:#c8cdf0;box-shadow:var(--shadow-sm)}
+.qa button{
+  width:100%;text-align:left;background:none;border:none;cursor:pointer;
+  padding:22px 26px;display:flex;justify-content:space-between;align-items:center;gap:18px;
+  font-size:16px;font-weight:600;color:var(--ink);font-family:inherit;
+}
+.qa .icon{flex:0 0 24px;height:24px;position:relative;transition:.3s}
+.qa .icon::before,.qa .icon::after{content:"";position:absolute;background:var(--brand);border-radius:2px;top:11px;left:4px;width:16px;height:2.4px;transition:.3s}
+.qa .icon::after{transform:rotate(90deg)}
+.qa.open .icon::after{transform:rotate(0)}
+.qa .ans{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.qa .ans p{padding:0 26px 24px;color:var(--muted);font-size:14.5px}
+
+/* ── Final CTA ──────────────────────────────── */
+.final{position:relative;background:var(--bg-deep);color:#fff;overflow:hidden;isolation:isolate}
+#cta-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.85}
+.final-veil{position:absolute;inset:0;z-index:1;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(91,108,255,.28),transparent 60%),linear-gradient(180deg,rgba(7,10,31,.5),rgba(7,10,31,.82))}
+.final-inner{position:relative;z-index:2;text-align:center;padding:118px 0}
+.final h2{font-size:clamp(30px,4.4vw,50px);font-weight:800;line-height:1.18;letter-spacing:-.02em;margin-bottom:18px}
+.final h2 .grad{background:linear-gradient(110deg,#8ab4ff,#9d7bff,#5be0c4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.final p{color:#c3c8e6;font-size:17px;max-width:540px;margin:0 auto 36px}
+.final-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.final small{display:block;margin-top:18px;color:#8b90b8;font-size:13px}
+
+/* ── Footer ─────────────────────────────────── */
+footer{background:#05071a;color:#aab0d4;padding:64px 0 36px;font-size:14px}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:34px;margin-bottom:46px}
+.foot-brand .brand{color:#fff;margin-bottom:14px}
+.foot-brand p{color:#7f86ab;max-width:280px;font-size:13.5px}
+.foot-col h5{color:#fff;font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:16px;text-transform:uppercase}
+.foot-col a{display:block;color:#9aa0c8;margin-bottom:11px;font-size:13.5px;transition:.2s}
+.foot-col a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:#6b7197;font-size:12.5px}
+
+/* reveal animation */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* ── Responsive ─────────────────────────────── */
+@media(max-width:900px){
+  .nav-links,.nav-cta .login{display:none}
+  .burger{display:flex}
+  .feature-grid,.scene-grid,.price-grid,.benefit-row{grid-template-columns:1fr}
+  .flow{grid-template-columns:repeat(2,1fr);gap:34px}
+  .step:not(:last-child)::after{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .section{padding:86px 0}
+  .price-grid .pcard.featured{order:-1}
+}
+@media(max-width:560px){
+  .foot-grid{grid-template-columns:1fr}
+  .hero-inner{padding:74px 0 90px}
+  .flow{grid-template-columns:1fr}
+}
+/* mobile menu */
+.mmenu{position:fixed;inset:0;z-index:60;background:rgba(7,10,31,.97);display:none;flex-direction:column;
+  padding:90px 30px;gap:6px}
+.mmenu.open{display:flex}
+.mmenu a{color:#e7e9f7;font-size:20px;font-weight:600;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu .close{position:absolute;top:24px;right:24px;background:none;border:none;color:#fff;font-size:30px;cursor:pointer}
+.mmenu .btn{margin-top:24px}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header id="hd">
+  <div class="wrap nav">
+    <a href="#" class="brand"><span class="logo-mark"></span>Minutes&nbsp;AI</a>
+    <nav class="nav-links">
+      <a href="#features">特徴</a>
+      <a href="#scenes">利用シーン</a>
+      <a href="#benefits">導入メリット</a>
+      <a href="#pricing">料金</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#" class="login">ログイン</a>
+      <a href="#cta" class="btn btn-primary">無料で始める</a>
+      <button class="burger" id="burger" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu">
+  <button class="close" id="mclose" aria-label="閉じる">×</button>
+  <a href="#features">特徴</a>
+  <a href="#scenes">利用シーン</a>
+  <a href="#benefits">導入メリット</a>
+  <a href="#pricing">料金</a>
+  <a href="#faq">FAQ</a>
+  <a href="#cta" class="btn btn-primary">無料で始める</a>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-veil"></div>
+  <div class="wrap hero-inner">
+    <span class="badge"><span class="dot"></span>国内3,200社が導入する AI議事録プラットフォーム</span>
+    <h1>会議の声を、<br><span class="grad">そのまま議事録に。</span></h1>
+    <p class="lead">録音するだけで、文字起こし・要約・決定事項・ToDo抽出までを Minutes AI が自動生成。会議が終わった瞬間に、共有できる議事録が完成しています。</p>
+    <div class="hero-actions">
+      <a href="#cta" class="btn btn-primary btn-lg">14日間 無料トライアル</a>
+      <a href="#features" class="btn btn-light btn-lg">機能を見る →</a>
+    </div>
+    <p class="hero-note">クレジットカード不要・1分で開始・いつでも解約可能</p>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="num">98.6%</div><div class="lbl">日本語 文字起こし精度</div></div>
+      <div class="stat"><div class="num">月8.2h</div><div class="lbl">1人あたり議事録作成の削減</div></div>
+      <div class="stat"><div class="num">30秒</div><div class="lbl">会議終了後の議事録生成</div></div>
+      <div class="stat"><div class="num">3,200+</div><div class="lbl">導入企業数</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TRUST BAR ══ -->
+<div class="trust">
+  <div class="wrap">
+    <p>あらゆる業種のチームに選ばれています</p>
+    <div class="logos">
+      <span class="co"><i></i>Aoba Tech</span>
+      <span class="co"><i></i>北斗フィナンシャル</span>
+      <span class="co"><i></i>MIRAI Works</span>
+      <span class="co"><i></i>Sakura&nbsp;Medical</span>
+      <span class="co"><i></i>結エンジニアリング</span>
+      <span class="co"><i></i>Lumina&nbsp;Corp</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section class="section features" id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">FEATURES</span>
+      <h2>議事録づくりの「面倒」を、<br>まるごと自動化。</h2>
+      <p>聞き取り、要約、整理、共有。これまで人が時間をかけていた工程を、Minutes AI が会議のスピードに追いつかせます。</p>
+    </div>
+    <div class="feature-grid">
+      <div class="fcard reveal">
+        <div class="ficon">🎙️</div>
+        <h3>高精度の自動文字起こし</h3>
+        <p>独自の日本語特化モデルが、専門用語や社名・人名もくっきり認識。話者を自動で識別し、「誰が・何を」発言したかを正確に記録します。</p>
+        <span class="tag">98.6%の認識精度 / 32言語対応</span>
+      </div>
+      <div class="fcard reveal">
+        <div class="ficon">✨</div>
+        <h3>AIによる要約と論点整理</h3>
+        <p>長い会議も、要点・決定事項・宿題・論点に自動で構造化。読むのに数分かかった議事録が、30秒で把握できるサマリーに変わります。</p>
+        <span class="tag">決定事項 / ToDo / 論点を自動抽出</span>
+      </div>
+      <div class="fcard reveal">
+        <div class="ficon">✅</div>
+        <h3>タスクを自動で割り当て</h3>
+        <p>「誰が・いつまでに・何を」する発言を検知してアクションアイテム化。担当者と期日を付けて、そのまま Slack やタスク管理ツールへ連携します。</p>
+        <span class="tag">担当者・期日を自動付与</span>
+      </div>
+      <div class="fcard reveal">
+        <div class="ficon">🔗</div>
+        <h3>ワークフロー連携</h3>
+        <p>Zoom・Google Meet・Teams に自動参加。完成した議事録は Slack / Notion / Salesforce へワンクリック、もしくは自動で配信されます。</p>
+        <span class="tag">Zoom / Meet / Teams / Slack / Notion</span>
+      </div>
+      <div class="fcard reveal">
+        <div class="ficon">🔍</div>
+        <h3>横断検索とナレッジ化</h3>
+        <p>過去のすべての会議をキーワード横断検索。「あの案件、何を決めたっけ?」が一瞬で見つかり、議事録が組織の資産に変わります。</p>
+        <span class="tag">全文検索 / タグ / 関連会議の自動リンク</span>
+      </div>
+      <div class="fcard reveal">
+        <div class="ficon">🛡️</div>
+        <h3>エンタープライズ級セキュリティ</h3>
+        <p>通信・保管ともに暗号化。国内データセンターでの運用、SSO/SAML、監査ログ、アクセス権限管理で情報システム部門の要件にも応えます。</p>
+        <span class="tag">ISO27001 / SSO / 監査ログ</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCENES ══ -->
+<section class="section scenes" id="scenes">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">USE CASES</span>
+      <h2>あらゆる「話し合い」が、<br>そのまま記録になる。</h2>
+      <p>Web会議も、対面の打ち合わせも。Minutes AI は、チームの会話が生まれるすべての場所で活躍します。</p>
+    </div>
+    <div class="scene-grid">
+      <div class="scard reveal">
+        <div class="top">💼</div>
+        <div class="body">
+          <h3>営業・商談</h3>
+          <p>商談の内容を聞き逃さず記録。ヒアリング事項とネクストアクションを自動整理し、CRMへ連携します。</p>
+          <ul>
+            <li>顧客の要望・課題を構造化</li>
+            <li>受注確度の高い発言をハイライト</li>
+            <li>そのまま日報・商談メモに</li>
+          </ul>
+        </div>
+      </div>
+      <div class="scard reveal">
+        <div class="top">🏛️</div>
+        <div class="body">
+          <h3>社内会議・定例</h3>
+          <p>議事録係をローテーションする必要はもうありません。全員が議論に集中でき、決定事項は会議直後に全員へ共有されます。</p>
+          <ul>
+            <li>決定事項・宿題を自動でリスト化</li>
+            <li>欠席者へ要約を自動配信</li>
+            <li>前回の宿題の進捗も追跡</li>
+          </ul>
+        </div>
+      </div>
+      <div class="scard reveal">
+        <div class="top">🎧</div>
+        <div class="body">
+          <h3>採用・1on1・面談</h3>
+          <p>面接や1on1の内容を正確に記録し、評価のばらつきを軽減。話に集中しながら、後から振り返れる記録が残ります。</p>
+          <ul>
+            <li>面接評価のメモを自動下書き</li>
+            <li>話者ごとの発言量を可視化</li>
+            <li>機微情報はアクセス制限で保護</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BENEFITS ══ -->
+<section class="section benefits" id="benefits">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">HOW IT WORKS</span>
+      <h2>導入は、たった4ステップ。</h2>
+      <p>特別な機材も、面倒な設定も不要。今日の会議から、議事録作成の時間がゼロになります。</p>
+    </div>
+    <div class="flow">
+      <div class="step reveal"><div class="ring">1</div><h4>会議に接続</h4><p>カレンダー連携で自動参加。対面はアプリで録音するだけ。</p></div>
+      <div class="step reveal"><div class="ring">2</div><h4>AIが記録</h4><p>文字起こしと話者識別をリアルタイムに進行。</p></div>
+      <div class="step reveal"><div class="ring">3</div><h4>自動で要約</h4><p>終了30秒後に、要点とToDo付きの議事録が完成。</p></div>
+      <div class="step reveal"><div class="ring">4</div><h4>ワンクリック共有</h4><p>Slack/Notion等へ自動配信。検索可能な資産に。</p></div>
+    </div>
+    <div class="benefit-row">
+      <div class="bcard reveal"><div class="big">月8.2h</div><h4>議事録作成からの解放</h4><p>1人あたり月8時間以上を占めていた「書く・整える・共有する」作業がゼロに。その時間を本来の仕事へ。</p></div>
+      <div class="bcard reveal"><div class="big">×3</div><h4>意思決定スピード向上</h4><p>決定事項とタスクが即共有されることで、会議後の「言った言わない」や認識ズレが消え、実行が加速します。</p></div>
+      <div class="bcard reveal"><div class="big">100%</div><h4>記録の標準化</h4><p>担当者によって品質がばらつかず、すべての会議が同じ品質で記録・検索可能に。組織のナレッジが蓄積します。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<section class="section pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">PRICING</span>
+      <h2>チームの規模に合わせて、<br>シンプルな料金で。</h2>
+      <p>すべてのプランで14日間の無料トライアルをご利用いただけます。年額契約なら2か月分お得に。</p>
+    </div>
+    <div class="toggle reveal">
+      <span>月額</span>
+      <button class="switch" id="switch" aria-label="支払い周期切替"><span class="knob"></span></button>
+      <span>年額</span>
+      <span class="save-badge">2か月分 おトク</span>
+    </div>
+    <div class="price-grid">
+      <div class="pcard reveal">
+        <div class="pname">Starter</div>
+        <div class="pdesc">個人や小さなチームで、まず議事録自動化を体験したい方に。</div>
+        <div class="pprice"><span class="cur">¥</span><span class="amt" data-m="980" data-y="816">980</span><span class="per">/ ユーザー・月</span></div>
+        <div class="pmeta" data-meta>月額契約・税抜</div>
+        <ul class="pfeat">
+          <li><span class="ck">✓</span>月10時間までの文字起こし</li>
+          <li><span class="ck">✓</span>AI要約・ToDo抽出</li>
+          <li><span class="ck">✓</span>Zoom / Meet / Teams 連携</li>
+          <li><span class="ck">✓</span>過去会議の全文検索</li>
+          <li><span class="ck">✓</span>メールサポート</li>
+        </ul>
+        <a href="#cta" class="btn btn-ghost">無料で始める</a>
+      </div>
+      <div class="pcard featured reveal">
+        <div class="pname">Business</div>
+        <div class="pdesc">部門・チーム全体で本格運用するなら、これ。最も選ばれています。</div>
+        <div class="pprice"><span class="cur">¥</span><span class="amt" data-m="2480" data-y="2066">2,480</span><span class="per">/ ユーザー・月</span></div>
+        <div class="pmeta" data-meta>月額契約・税抜</div>
+        <ul class="pfeat">
+          <li><span class="ck">✓</span>文字起こし時間 <strong>無制限</strong></li>
+          <li><span class="ck">✓</span>話者識別・カスタム用語辞書</li>
+          <li><span class="ck">✓</span>Slack / Notion / Salesforce 連携</li>
+          <li><span class="ck">✓</span>タスク自動割り当て</li>
+          <li><span class="ck">✓</span>チーム共有ワークスペース</li>
+          <li><span class="ck">✓</span>優先チャットサポート</li>
+        </ul>
+        <a href="#cta" class="btn btn-primary">14日間 無料で試す</a>
+      </div>
+      <div class="pcard reveal">
+        <div class="pname">Enterprise</div>
+        <div class="pdesc">全社展開・高度なセキュリティ要件をお持ちの企業向け。</div>
+        <div class="pprice"><span class="amt" style="font-size:34px">お問い合わせ</span></div>
+        <div class="pmeta" data-meta>年間契約・個別見積</div>
+        <ul class="pfeat">
+          <li><span class="ck">✓</span>Business の全機能</li>
+          <li><span class="ck">✓</span>SSO / SAML・監査ログ</li>
+          <li><span class="ck">✓</span>SLA保証・専任サポート</li>
+          <li><span class="ck">✓</span>API・カスタム連携</li>
+          <li><span class="ck">✓</span>データ保管リージョン指定</li>
+          <li><span class="ck">✓</span>導入オンボーディング支援</li>
+        </ul>
+        <a href="#cta" class="btn btn-ghost">営業に相談する</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section class="section faq" id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>よくあるご質問</h2>
+      <p>導入前によくいただく質問をまとめました。その他のご質問はお気軽にお問い合わせください。</p>
+    </div>
+    <div class="faq-list">
+      <div class="qa reveal">
+        <button>専門用語や社内独自の言葉も正しく認識できますか?<span class="icon"></span></button>
+        <div class="ans"><p>はい。Business プラン以上では「カスタム用語辞書」に社名・製品名・専門用語・略語などを登録でき、それらを優先的に認識します。業界特有の言い回しにも継続学習で対応し、利用するほど精度が高まります。</p></div>
+      </div>
+      <div class="qa reveal">
+        <button>対面の会議でも使えますか?<span class="icon"></span></button>
+        <div class="ans"><p>もちろんです。スマートフォンやPCのアプリで録音するだけで、Web会議と同じように文字起こし・要約・ToDo抽出まで自動で行えます。会議室での複数人の会話も、話者を識別して記録します。</p></div>
+      </div>
+      <div class="qa reveal">
+        <button>録音した音声や議事録のセキュリティは大丈夫ですか?<span class="icon"></span></button>
+        <div class="ans"><p>通信・保管ともに暗号化し、国内のデータセンターで運用しています。ISO/IEC 27001 を取得し、SSO/SAML、アクセス権限管理、監査ログに対応。お客様のデータをAIモデルの再学習に利用することは一切ありません。</p></div>
+      </div>
+      <div class="qa reveal">
+        <button>どのWeb会議ツールに対応していますか?<span class="icon"></span></button>
+        <div class="ans"><p>Zoom・Google Meet・Microsoft Teams に対応しています。カレンダーと連携すれば、AIアシスタントが会議へ自動参加して記録を開始します。録音済みの音声・動画ファイルをアップロードして文字起こしすることも可能です。</p></div>
+      </div>
+      <div class="qa reveal">
+        <button>無料トライアルの後、自動で課金されますか?<span class="icon"></span></button>
+        <div class="ans"><p>いいえ。14日間の無料トライアルにクレジットカードの登録は不要で、期間終了後に自動で課金されることはありません。継続される場合のみ、管理画面からプランをお申し込みください。いつでも解約できます。</p></div>
+      </div>
+      <div class="qa reveal">
+        <button>既存のツール（Slackやタスク管理）と連携できますか?<span class="icon"></span></button>
+        <div class="ans"><p>はい。Slack・Notion・Salesforce・Google ドライブなど主要なツールと連携でき、議事録の自動配信やタスクの自動起票が可能です。Enterprise プランでは API を通じて社内システムとのカスタム連携にも対応します。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FINAL CTA ══ -->
+<section class="final" id="cta">
+  <canvas id="cta-canvas"></canvas>
+  <div class="final-veil"></div>
+  <div class="wrap final-inner">
+    <h2>もう、議事録に<br><span class="grad">時間を奪われない。</span></h2>
+    <p>今日の会議から、Minutes AI を。14日間、すべての機能を無料でお試しいただけます。</p>
+    <div class="final-actions">
+      <a href="#" class="btn btn-primary btn-lg">無料トライアルを始める</a>
+      <a href="#" class="btn btn-light btn-lg">資料をダウンロード</a>
+    </div>
+    <small>クレジットカード不要・1分でセットアップ完了・いつでも解約可能</small>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="brand"><span class="logo-mark"></span>Minutes&nbsp;AI</a>
+        <p>会議の声を、そのまま議事録に。チームの会話を、組織の資産に変えるAI議事録プラットフォーム。</p>
+      </div>
+      <div class="foot-col"><h5>製品</h5><a href="#features">機能</a><a href="#pricing">料金</a><a href="#scenes">利用シーン</a><a href="#">連携サービス</a><a href="#">セキュリティ</a></div>
+      <div class="foot-col"><h5>会社</h5><a href="#">会社概要</a><a href="#">採用情報</a><a href="#">ニュース</a><a href="#">お問い合わせ</a></div>
+      <div class="foot-col"><h5>サポート</h5><a href="#faq">よくある質問</a><a href="#">ヘルプセンター</a><a href="#">利用規約</a><a href="#">プライバシー</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Minutes AI, Inc. All rights reserved.</span>
+      <span>架空のサービスです / algorithmic-art skill 転用デモ</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   GENERATIVE HERO ARTWORK —「Convergent Murmuration」
+   algorithmic-art スキルの作法を転用:
+   - seeded randomness (Art Blocks パターン): same seed → same field
+   - Perlin ノイズ流れ場 + 粒子（発話の断片）が中心軸へ収束
+   - controlled chaos: ランダムを厳密な力の境界内に閉じ込める
+   - conceptual seed: 「会話(混沌)→議事録(秩序)」の相転移を引力として埋め込む
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const PALETTE = [
+  [91,108,255],   // brand
+  [138,91,255],   // violet
+  [34,211,238],   // aqua
+  [52,224,161],   // mint
+  [255,177,78]    // amber (sparse accent)
+];
+
+/* 決定論的な疑似乱数（シード固定） */
+function makeRNG(seed){
+  let s = seed >>> 0;
+  return function(){
+    s ^= s << 13; s >>>= 0;
+    s ^= s >> 17;
+    s ^= s << 5;  s >>>= 0;
+    return s / 4294967296;
+  };
+}
+
+class MurmurationField {
+  constructor(canvas, opts){
+    this.c = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.seed = opts.seed || 73412;
+    this.density = opts.density || 0.00016; // particles per px^2
+    this.convergence = opts.convergence ?? 0.45; // 中心軸への引力
+    this.noiseScale = opts.noiseScale || 0.0016;
+    this.speed = opts.speed || 1.0;
+    this.fade = opts.fade ?? 0.055;
+    this.lineMode = !!opts.lineMode;
+    this.particles = [];
+    this.t = 0;
+    this.perm = this.buildPerm(this.seed);
+    this.resize();
+    window.addEventListener('resize', ()=>this.resize());
+  }
+  /* Perlin風 value-noise 用の置換テーブル（シード依存） */
+  buildPerm(seed){
+    const rng = makeRNG(seed * 2654435761 >>> 0);
+    const p = new Uint8Array(512);
+    const base = Array.from({length:256},(_,i)=>i);
+    for(let i=255;i>0;i--){ const j=Math.floor(rng()*(i+1)); [base[i],base[j]]=[base[j],base[i]]; }
+    for(let i=0;i<512;i++) p[i]=base[i&255];
+    return p;
+  }
+  fade2(t){ return t*t*t*(t*(t*6-15)+10); }
+  lerp(a,b,t){ return a+(b-a)*t; }
+  grad(h,x,y){ const u = (h&1)?x:-x; const v=(h&2)?y:-y; return u+v; }
+  /* 2D value/perlin noise → angle */
+  noise(x,y){
+    const X=Math.floor(x)&255, Y=Math.floor(y)&255;
+    x-=Math.floor(x); y-=Math.floor(y);
+    const u=this.fade2(x), v=this.fade2(y);
+    const p=this.perm;
+    const A=p[X]+Y, B=p[X+1]+Y;
+    return (this.lerp(
+      this.lerp(this.grad(p[A],x,y),   this.grad(p[B],x-1,y),   u),
+      this.lerp(this.grad(p[A+1],x,y-1),this.grad(p[B+1],x-1,y-1),u),
+      v)+1)/2;
+  }
+  resize(){
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    const r = this.c.getBoundingClientRect();
+    this.w = r.width; this.h = r.height;
+    this.c.width = this.w*dpr; this.c.height = this.h*dpr;
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+    this.spawn();
+    this.ctx.fillStyle = '#070a1f';
+    this.ctx.fillRect(0,0,this.w,this.h);
+  }
+  spawn(){
+    const rng = makeRNG(this.seed ^ 0x9e3779b9);
+    const count = Math.min(900, Math.max(160, Math.floor(this.w*this.h*this.density)));
+    this.particles = [];
+    for(let i=0;i<count;i++){
+      const col = PALETTE[i%5===0 ? 4 : Math.floor(rng()*4)]; // amberはまばらに
+      this.particles.push({
+        x: rng()*this.w, y: rng()*this.h,
+        px:0, py:0,
+        vx:0, vy:0,
+        life: rng(),
+        maxLife: 120+rng()*200,
+        col, size: 0.6+rng()*1.6,
+        bright: 0.5+rng()*0.5
+      });
+    }
+  }
+  step(){
+    const ctx = this.ctx;
+    /* 残像フェード（流れの軌跡を蓄積） */
+    ctx.fillStyle = `rgba(7,10,31,${this.fade})`;
+    ctx.fillRect(0,0,this.w,this.h);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const cx = this.w*0.5;          // 収束軸（議事録の背骨）
+    const t = this.t;
+
+    for(const p of this.particles){
+      p.px = p.x; p.py = p.y;
+      /* 流れ場の角度 = 多重ノイズ（controlled chaos） */
+      const n = this.noise(p.x*this.noiseScale, p.y*this.noiseScale + t*0.15);
+      const n2 = this.noise(p.x*this.noiseScale*2.3+50, p.y*this.noiseScale*2.3 - t*0.1);
+      const ang = (n*Math.PI*2) + (n2-0.5)*1.4;
+      let fx = Math.cos(ang), fy = Math.sin(ang);
+
+      /* conceptual seed: 中心軸への引力（混沌→秩序の相転移） */
+      const dx = (cx - p.x)/this.w;
+      fx += dx * this.convergence * 3.2;
+      fy += Math.sin(p.y*0.01 + t)*0.06;
+
+      p.vx = p.vx*0.86 + fx*0.34*this.speed;
+      p.vy = p.vy*0.86 + fy*0.34*this.speed;
+      p.x += p.vx; p.y += p.vy;
+      p.life++;
+
+      /* 軸付近に収束した粒子・寿命切れは外縁へ再生（emergent flow） */
+      const nearAxis = Math.abs(p.x-cx) < this.w*0.012;
+      if(p.life>p.maxLife || nearAxis || p.x<-20 || p.x>this.w+20 || p.y<-20 || p.y>this.h+20){
+        const rng = makeRNG((p.x*7349 + p.y*131 + this.t*17)>>>0);
+        const edge = rng();
+        if(edge<0.55){ p.x = rng()<0.5 ? -10 : this.w+10; p.y = rng()*this.h; }
+        else { p.x = rng()*this.w; p.y = rng()<0.5 ? -10 : this.h+10; }
+        p.px=p.x; p.py=p.y; p.vx=p.vy=0; p.life=0;
+      }
+
+      /* 速度で明るさが変化（速い＝燃える / 遅い＝沈む） */
+      const sp = Math.min(1, Math.hypot(p.vx,p.vy)/3.2);
+      const alpha = (0.10 + sp*0.55) * p.bright;
+      const [r,g,b] = p.col;
+      ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+      ctx.lineWidth = p.size;
+      ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(p.px,p.py);
+      ctx.lineTo(p.x,p.y);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    this.t += 0.01*this.speed;
+  }
+}
+
+/* 動作管理（オフスクリーン時は停止して軽量化） */
+function runField(id, opts){
+  const cv = document.getElementById(id);
+  if(!cv) return;
+  const field = new MurmurationField(cv, opts);
+  let visible = true, raf;
+  const io = new IntersectionObserver(es=>{visible=es[0].isIntersecting; if(visible) loop();},{threshold:0.01});
+  io.observe(cv);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function loop(){
+    if(!visible) return;
+    field.step();
+    if(reduce) return; // 動きを抑える設定なら1フレームのみ
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+  return field;
+}
+
+window.addEventListener('load', ()=>{
+  runField('hero-canvas', {seed: 73412, convergence:0.5, noiseScale:0.0015, speed:1.0, density:0.00018});
+  runField('cta-canvas',  {seed: 20240611, convergence:0.62, noiseScale:0.0021, speed:0.85, density:0.00014, fade:0.07});
+});
+
+/* ── interaction: header / menu / faq / pricing toggle / reveal ── */
+const hd = document.getElementById('hd');
+addEventListener('scroll',()=>hd.classList.toggle('scrolled', scrollY>10));
+
+const burger=document.getElementById('burger'), mmenu=document.getElementById('mmenu'), mclose=document.getElementById('mclose');
+burger.onclick=()=>mmenu.classList.add('open');
+mclose.onclick=()=>mmenu.classList.remove('open');
+mmenu.querySelectorAll('a').forEach(a=>a.onclick=()=>mmenu.classList.remove('open'));
+
+document.querySelectorAll('.qa button').forEach(b=>{
+  b.onclick=()=>{
+    const qa=b.parentElement, ans=qa.querySelector('.ans');
+    const open=qa.classList.contains('open');
+    document.querySelectorAll('.qa').forEach(x=>{x.classList.remove('open');x.querySelector('.ans').style.maxHeight=null});
+    if(!open){qa.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';}
+  };
+});
+
+/* pricing 月額/年額切替 */
+const sw=document.getElementById('switch');
+let yearly=false;
+sw.onclick=()=>{
+  yearly=!yearly;
+  sw.classList.toggle('year',yearly);
+  document.querySelectorAll('.amt[data-m]').forEach(el=>{
+    const v=yearly?el.dataset.y:el.dataset.m;
+    el.textContent=Number(v).toLocaleString('ja-JP');
+  });
+  document.querySelectorAll('[data-meta]').forEach(el=>{
+    if(el.textContent.includes('個別')) return;
+    el.textContent = yearly?'年額契約（月あたり換算）・税抜':'月額契約・税抜';
+  });
+};
+
+/* scroll reveal */
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}}),{threshold:0.12});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4)*0.06+'s';ro.observe(el)});
+</script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minutes AI — 会議を、観測可能にする。</title>
+<meta name="description" content="Minutes AI は会議の発話をリアルタイムに記録・要約し、決定事項とタスクを自動抽出するAI議事録SaaSです。" />
+<!-- Canvas-design font selection (bundled .ttf mapped to Google Fonts CDN) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;500;700;900&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     DESIGN PHILOSOPHY — "CLINICAL CLARITY"
+     A SaaS interpretation of systematic-observation aesthetics:
+     sculptural display type as monument, clinical mono labels as
+     reference markers, vast negative space, a restrained palette,
+     and a faint coordinate grid as the work's invisible DNA.
+     Information lives in structure, hierarchy and rhythm.
+     ============================================================ */
+
+  :root {
+    --ink:      #0c0e12;   /* near-black graphite      */
+    --paper:    #f4f2ec;   /* warm archival paper      */
+    --paper-2:  #eceae2;   /* recessed panel           */
+    --line:     #d6d3c8;   /* hairline rules           */
+    --mute:     #6c6a62;   /* clinical label grey      */
+    --accent:   #1b3bff;   /* signal blue — the pulse  */
+    --accent-d: #0d22b8;
+    --glow:     rgba(27,59,255,0.16);
+    --serif:  'Instrument Serif', Georgia, 'Times New Roman', serif;
+    --disp:   'Big Shoulders Display', 'Arial Narrow', system-ui, sans-serif;
+    --mono:   'Geist Mono', 'SFMono-Regular', ui-monospace, monospace;
+    --body:   'Work Sans', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+  body {
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.6;
+    overflow-x:hidden;
+    /* faint coordinate grid — the systematic-observation DNA */
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:96px 96px;
+    background-position:center top;
+  }
+  body::before {
+    /* desaturate the grid so it whispers */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(circle at 50% 18%, transparent 0%, var(--paper) 78%);
+  }
+
+  ::selection { background:var(--accent); color:#fff; }
+  a { color:inherit; text-decoration:none; }
+  img,svg { display:block; }
+
+  .wrap { width:min(1180px, 92vw); margin-inline:auto; position:relative; z-index:1; }
+
+  /* clinical reference label */
+  .label {
+    font-family:var(--mono); font-size:11px; letter-spacing:.28em;
+    text-transform:uppercase; color:var(--mute); font-weight:500;
+  }
+  .label .dot { color:var(--accent); }
+
+  .tick {
+    font-family:var(--mono); font-size:11px; letter-spacing:.2em;
+    color:var(--mute);
+  }
+
+  /* ---------- HEADER ---------- */
+  header {
+    position:sticky; top:0; z-index:50;
+    background:rgba(244,242,236,0.82);
+    backdrop-filter:saturate(140%) blur(12px);
+    -webkit-backdrop-filter:saturate(140%) blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav { display:flex; align-items:center; justify-content:space-between;
+         height:68px; }
+  .brand { display:flex; align-items:center; gap:11px; }
+  .brand .mark {
+    width:30px; height:30px; position:relative; flex:none;
+  }
+  .brand .mark span {
+    position:absolute; inset:0; border:1.6px solid var(--ink);
+    border-radius:50%;
+  }
+  .brand .mark span:nth-child(2){ inset:7px; border-color:var(--accent); }
+  .brand .mark span:nth-child(3){
+    inset:0; border:none; background:var(--accent); width:5px; height:5px;
+    border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%);
+    box-shadow:0 0 0 0 var(--glow); animation:pulse 2.6s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow:0 0 0 0 var(--glow); }
+    70%  { box-shadow:0 0 0 9px transparent; }
+    100% { box-shadow:0 0 0 0 transparent; }
+  }
+  .brand b { font-family:var(--disp); font-weight:700; font-size:21px;
+             letter-spacing:.02em; }
+  .brand b i { font-style:normal; color:var(--accent); }
+  .navlinks { display:flex; gap:30px; align-items:center; }
+  .navlinks a { font-size:14px; color:var(--mute); transition:color .2s; }
+  .navlinks a:hover { color:var(--ink); }
+  .nav-cta {
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; padding:11px 18px;
+    background:var(--ink); color:var(--paper); border-radius:2px;
+    transition:transform .18s, background .2s;
+  }
+  .nav-cta:hover { background:var(--accent); transform:translateY(-1px); }
+  .burger { display:none; background:none; border:none; cursor:pointer;
+            flex-direction:column; gap:5px; padding:6px; }
+  .burger span { width:22px; height:2px; background:var(--ink); display:block; }
+
+  /* ---------- HERO ---------- */
+  .hero { padding:74px 0 40px; position:relative; }
+  .hero-meta {
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:46px;
+  }
+  .hero h1 {
+    font-family:var(--disp); font-weight:900;
+    font-size:clamp(60px, 12.4vw, 188px);
+    line-height:.86; letter-spacing:-.01em; text-transform:uppercase;
+    margin:0; position:relative;
+  }
+  .hero h1 .blue { color:var(--accent); }
+  .hero h1 .out {
+    color:transparent; -webkit-text-stroke:2px var(--ink);
+  }
+  .hero-serif {
+    font-family:var(--serif); font-style:italic; text-transform:none;
+    font-weight:400; -webkit-text-stroke:0; color:var(--ink);
+    font-size:clamp(40px,8vw,128px); letter-spacing:0;
+  }
+  .hero-grid {
+    display:grid; grid-template-columns:1.1fr .9fr; gap:48px;
+    margin-top:52px; align-items:end;
+  }
+  .hero-lede { font-size:19px; line-height:1.7; color:#34322c; max-width:38ch; }
+  .hero-lede b { font-weight:600; }
+  .hero-actions { display:flex; gap:14px; margin-top:30px; flex-wrap:wrap; }
+  .btn {
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-size:13px; letter-spacing:.08em;
+    text-transform:uppercase; padding:16px 26px; border-radius:3px;
+    transition:transform .18s, box-shadow .25s, background .2s;
+    cursor:pointer; border:1px solid var(--ink);
+  }
+  .btn-primary {
+    background:var(--accent); color:#fff; border-color:var(--accent);
+    box-shadow:0 10px 30px -8px var(--glow);
+  }
+  .btn-primary:hover { background:var(--accent-d); transform:translateY(-2px);
+    box-shadow:0 18px 40px -10px var(--glow); }
+  .btn-ghost { background:transparent; color:var(--ink); }
+  .btn-ghost:hover { background:var(--ink); color:var(--paper); transform:translateY(-2px); }
+  .btn .arrow { transition:transform .2s; }
+  .btn:hover .arrow { transform:translate(3px,-3px); }
+
+  /* hero side specimen — a clinical "reading" panel */
+  .specimen {
+    border:1px solid var(--ink); background:var(--paper-2);
+    border-radius:4px; overflow:hidden; box-shadow:0 24px 60px -30px rgba(12,14,18,.5);
+  }
+  .specimen .bar {
+    display:flex; align-items:center; gap:7px; padding:11px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .specimen .bar i { width:9px; height:9px; border-radius:50%; background:var(--line); display:block; }
+  .specimen .bar i:nth-child(3){ background:var(--accent); }
+  .specimen .bar span { margin-left:auto; }
+  .specimen .body { padding:18px 16px 20px; }
+  .wave { display:flex; align-items:flex-end; gap:3px; height:42px; margin-bottom:16px; }
+  .wave i {
+    flex:1; background:var(--accent); border-radius:1px; opacity:.85;
+    animation:bob 1.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{ transform:scaleY(.35);} 50%{ transform:scaleY(1);} }
+  .line-row { display:flex; gap:10px; padding:9px 0; border-top:1px dashed var(--line);
+              font-size:13px; align-items:baseline; }
+  .line-row .who { font-family:var(--mono); font-size:11px; color:var(--accent);
+                   min-width:46px; }
+  .line-row .txt { color:#3a382f; }
+  .chip {
+    display:inline-block; margin-top:4px; font-family:var(--mono); font-size:10px;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--accent);
+    border:1px solid var(--accent); border-radius:2px; padding:2px 7px;
+  }
+
+  /* logos / trust strip */
+  .trust { border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+           margin-top:64px; padding:26px 0; }
+  .trust-inner { display:flex; align-items:center; gap:40px; flex-wrap:wrap;
+                 justify-content:space-between; }
+  .trust .logos { display:flex; gap:40px; flex-wrap:wrap; align-items:center; }
+  .trust .logos span { font-family:var(--disp); font-weight:700; font-size:21px;
+                       letter-spacing:.04em; color:#9a988f; }
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  section { padding:104px 0; position:relative; }
+  .sec-head { display:flex; justify-content:space-between; align-items:flex-end;
+              gap:30px; margin-bottom:58px; border-bottom:1px solid var(--line);
+              padding-bottom:24px; }
+  .sec-head h2 {
+    font-family:var(--disp); font-weight:700; text-transform:uppercase;
+    font-size:clamp(34px,5.4vw,76px); line-height:.9; letter-spacing:-.005em;
+    max-width:14ch;
+  }
+  .sec-head h2 em { font-family:var(--serif); font-style:italic; text-transform:none;
+                    color:var(--accent); font-weight:400; }
+  .sec-head .idx { text-align:right; white-space:nowrap; }
+  .sec-head .idx b { display:block; font-family:var(--disp); font-size:46px;
+                     font-weight:900; color:var(--accent); line-height:1; }
+
+  /* ---------- FEATURES ---------- */
+  .features { display:grid; grid-template-columns:repeat(2,1fr); gap:0;
+              border:1px solid var(--ink); background:var(--paper); }
+  .feat { padding:40px 38px; border-right:1px solid var(--line);
+          border-bottom:1px solid var(--line); position:relative;
+          transition:background .25s; }
+  .features .feat:nth-child(2n){ border-right:none; }
+  .features .feat:nth-last-child(-n+2){ border-bottom:none; }
+  .feat:hover { background:var(--paper-2); }
+  .feat .no { font-family:var(--mono); font-size:12px; color:var(--mute);
+              letter-spacing:.2em; }
+  .feat .ico { width:48px; height:48px; margin:22px 0 20px; }
+  .feat h3 { font-family:var(--disp); font-weight:700; font-size:28px;
+             text-transform:uppercase; letter-spacing:.01em; margin-bottom:10px; }
+  .feat p { color:#43413a; font-size:15.5px; line-height:1.66; }
+  .feat .ico [stroke]{ stroke:var(--ink); }
+  .feat .ico [data-blue]{ stroke:var(--accent); }
+
+  /* ---------- USE CASES ---------- */
+  .scenes { display:flex; flex-direction:column; gap:0;
+            border-top:1px solid var(--ink); }
+  .scene {
+    display:grid; grid-template-columns:84px 1fr 1.1fr; gap:34px;
+    padding:42px 0; border-bottom:1px solid var(--line); align-items:start;
+    transition:padding-left .25s, background .25s;
+  }
+  .scene:hover { padding-left:18px; background:linear-gradient(90deg,var(--paper-2),transparent 60%); }
+  .scene .big { font-family:var(--disp); font-weight:900; font-size:58px;
+                color:transparent; -webkit-text-stroke:1.4px var(--ink); line-height:.8; }
+  .scene:hover .big { color:var(--accent); -webkit-text-stroke:0; }
+  .scene h3 { font-family:var(--disp); font-weight:700; font-size:26px;
+              text-transform:uppercase; margin-bottom:8px; }
+  .scene .role { font-family:var(--mono); font-size:11px; letter-spacing:.18em;
+                 text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+  .scene p { color:#43413a; font-size:15.5px; }
+
+  /* ---------- BENEFITS (metrics) ---------- */
+  .benefits { background:var(--ink); color:var(--paper);
+              border-radius:6px; padding:78px 5vw; margin-top:8px;
+              position:relative; overflow:hidden; }
+  .benefits::before {
+    content:""; position:absolute; inset:0; opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:64px 64px;
+  }
+  .benefits .sec-head { border-color:rgba(255,255,255,.16); }
+  .benefits .sec-head h2 { color:var(--paper); }
+  .benefits .label { color:#9a988f; }
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+             position:relative; z-index:1; }
+  .metric { padding:18px 30px; border-left:1px solid rgba(255,255,255,.16); }
+  .metric:first-child { border-left:none; padding-left:0; }
+  .metric .big {
+    font-family:var(--disp); font-weight:900; font-size:clamp(56px,8vw,104px);
+    line-height:.9; color:var(--paper);
+  }
+  .metric .big i { font-style:normal; color:var(--accent); }
+  .metric .cap { color:#c9c7bf; font-size:15px; margin-top:8px; max-width:24ch; }
+  .ben-note { position:relative; z-index:1; margin-top:46px;
+              font-family:var(--serif); font-style:italic; font-size:24px;
+              color:#dedcd2; max-width:46ch; }
+
+  /* ---------- PRICING ---------- */
+  .plans { display:grid; grid-template-columns:repeat(3,1fr);
+           border:1px solid var(--ink); background:var(--paper); }
+  .plan { padding:38px 32px 40px; border-right:1px solid var(--line);
+          display:flex; flex-direction:column; }
+  .plan:last-child { border-right:none; }
+  .plan.feat-plan { background:var(--ink); color:var(--paper);
+                    margin:-1px; box-shadow:0 30px 70px -30px rgba(12,14,18,.6); }
+  .plan .pname { font-family:var(--disp); font-weight:700; font-size:30px;
+                 text-transform:uppercase; }
+  .plan .ptag { font-family:var(--mono); font-size:11px; letter-spacing:.18em;
+                text-transform:uppercase; color:var(--mute); margin-top:4px; }
+  .plan.feat-plan .ptag { color:var(--accent); }
+  .plan .badge { align-self:flex-start; font-family:var(--mono); font-size:10px;
+                 letter-spacing:.14em; text-transform:uppercase; color:#fff;
+                 background:var(--accent); padding:4px 9px; border-radius:2px;
+                 margin-bottom:14px; }
+  .plan .price { margin:26px 0 6px; display:flex; align-items:baseline; gap:6px; }
+  .plan .price b { font-family:var(--disp); font-weight:900; font-size:62px; line-height:.9; }
+  .plan .price .yen { font-family:var(--disp); font-weight:700; font-size:26px; }
+  .plan .price .per { font-family:var(--mono); font-size:12px; color:var(--mute); }
+  .plan.feat-plan .price .per { color:#b9c0ff; }
+  .plan .pdesc { font-size:14px; color:#54524a; min-height:42px; }
+  .plan.feat-plan .pdesc { color:#c9c7bf; }
+  .plan ul { list-style:none; margin:24px 0 28px; display:flex;
+             flex-direction:column; gap:11px; flex:1; }
+  .plan li { font-size:14.5px; display:flex; gap:11px; align-items:flex-start;
+             color:#3a382f; }
+  .plan.feat-plan li { color:#e3e1d7; }
+  .plan li::before { content:"+"; font-family:var(--mono); color:var(--accent);
+                     font-weight:600; }
+  .plan .pbtn { font-family:var(--mono); font-size:12px; letter-spacing:.1em;
+                text-transform:uppercase; text-align:center; padding:15px;
+                border:1px solid var(--ink); border-radius:3px; transition:.2s; }
+  .plan .pbtn:hover { background:var(--ink); color:var(--paper); }
+  .plan.feat-plan .pbtn { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .plan.feat-plan .pbtn:hover { background:#fff; color:var(--accent); }
+  .price-note { margin-top:20px; font-size:13px; color:var(--mute);
+                font-family:var(--mono); letter-spacing:.03em; }
+
+  /* ---------- FAQ ---------- */
+  .faq { border-top:1px solid var(--ink); }
+  .qa { border-bottom:1px solid var(--line); }
+  .qa summary {
+    list-style:none; cursor:pointer; padding:28px 0; display:flex;
+    gap:24px; align-items:flex-start; transition:color .2s;
+  }
+  .qa summary::-webkit-details-marker { display:none; }
+  .qa .qn { font-family:var(--mono); font-size:12px; color:var(--accent);
+            letter-spacing:.16em; padding-top:5px; min-width:42px; }
+  .qa .qq { font-family:var(--disp); font-weight:500; font-size:clamp(20px,2.6vw,30px);
+            text-transform:uppercase; flex:1; line-height:1.08; letter-spacing:.005em; }
+  .qa .plus { font-family:var(--mono); font-size:24px; color:var(--mute);
+              transition:transform .3s, color .2s; line-height:1; padding-top:2px; }
+  .qa[open] .plus { transform:rotate(45deg); color:var(--accent); }
+  .qa[open] .qq { color:var(--accent); }
+  .qa .ans { padding:0 0 30px 66px; max-width:70ch; color:#43413a;
+             font-size:16px; line-height:1.7; }
+  .qa .ans p + p { margin-top:12px; }
+
+  /* ---------- FINAL CTA ---------- */
+  .final {
+    text-align:center; padding:130px 0 120px;
+    border-top:1px solid var(--ink); position:relative;
+  }
+  .final h2 {
+    font-family:var(--disp); font-weight:900; text-transform:uppercase;
+    font-size:clamp(50px,11vw,168px); line-height:.84; letter-spacing:-.01em;
+  }
+  .final h2 .blue { color:var(--accent); }
+  .final h2 .serif { font-family:var(--serif); font-style:italic; text-transform:none;
+                     font-weight:400; }
+  .final p { max-width:40ch; margin:30px auto 36px; color:#43413a; font-size:18px; }
+  .final .hero-actions { justify-content:center; }
+  .final .micro { margin-top:26px; }
+
+  /* ---------- FOOTER ---------- */
+  footer { border-top:1px solid var(--ink); padding:54px 0 40px; }
+  .foot-grid { display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:34px; }
+  .foot-grid h4 { font-family:var(--mono); font-size:11px; letter-spacing:.2em;
+                  text-transform:uppercase; color:var(--mute); margin-bottom:16px; }
+  .foot-grid a { display:block; font-size:14.5px; color:#43413a; padding:5px 0;
+                 transition:color .2s; }
+  .foot-grid a:hover { color:var(--accent); }
+  .foot-lede { font-family:var(--serif); font-style:italic; font-size:22px;
+               color:#34322c; max-width:30ch; }
+  .foot-bottom { display:flex; justify-content:space-between; align-items:center;
+                 margin-top:48px; padding-top:24px; border-top:1px solid var(--line);
+                 flex-wrap:wrap; gap:14px; }
+  .foot-bottom .tick { font-size:12px; }
+
+  /* ---------- REVEAL ---------- */
+  .reveal { opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity:1; transform:none; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:980px){
+    .hero-grid { grid-template-columns:1fr; gap:40px; }
+    .metrics { grid-template-columns:1fr; }
+    .metric { border-left:none; border-top:1px solid rgba(255,255,255,.16);
+              padding:24px 0; }
+    .metric:first-child { border-top:none; padding-top:0; }
+    .foot-grid { grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:760px){
+    body { font-size:16px; background-size:64px 64px; }
+    .navlinks { display:none; }
+    .burger { display:flex; }
+    .navlinks.open { display:flex; position:absolute; top:68px; left:0; right:0;
+      flex-direction:column; background:var(--paper); border-bottom:1px solid var(--ink);
+      padding:18px 4vw 24px; gap:16px; }
+    .navlinks.open a { font-size:16px; }
+    .features { grid-template-columns:1fr; }
+    .features .feat { border-right:none; }
+    .features .feat:nth-last-child(2){ border-bottom:1px solid var(--line); }
+    .plans { grid-template-columns:1fr; }
+    .plan { border-right:none; border-bottom:1px solid var(--line); }
+    .plan.feat-plan { margin:0; }
+    .scene { grid-template-columns:1fr; gap:10px; }
+    .scene .big { font-size:44px; }
+    .sec-head { flex-direction:column; align-items:flex-start; gap:14px; }
+    .foot-grid { grid-template-columns:1fr; }
+    .qa .ans { padding-left:0; }
+    section { padding:74px 0; }
+    .benefits { padding:54px 26px; border-radius:0; margin-inline:calc(50% - 50vw); width:100vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Minutes AI ホーム">
+      <span class="mark"><span></span><span></span><span></span></span>
+      <b>Minutes<i> AI</i></b>
+    </a>
+    <nav class="navlinks" id="nav">
+      <a href="#features">特徴</a>
+      <a href="#scenes">利用シーン</a>
+      <a href="#benefits">導入効果</a>
+      <a href="#pricing">料金</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a class="nav-cta" href="#cta">無料で始める</a>
+      <button class="burger" id="burger" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<!-- ===================== HERO ===================== -->
+<section class="hero" style="padding-top:60px;">
+  <div class="wrap">
+    <div class="hero-meta">
+      <span class="label"><span class="dot">●</span>&nbsp; MINUTES&nbsp;AI / 議事録の知能化</span>
+      <span class="tick">SPEC — REC.2026 / JA-JP</span>
+    </div>
+
+    <h1>
+      会議を、<br />
+      <span class="blue">観測</span><span class="hero-serif">可能</span>に。
+    </h1>
+
+    <div class="hero-grid">
+      <div>
+        <p class="hero-lede">
+          Minutes AI は、会議の発話を<b>リアルタイムで文字起こし</b>し、
+          決定事項・宿題・期限を自動で抽出します。
+          記録に追われる時間をゼロにして、人は「考える会議」に集中する。
+          話した言葉が、そのまま動く議事録になります。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#cta">14日間 無料トライアル <span class="arrow">↗</span></a>
+          <a class="btn btn-ghost" href="#features">機能を見る</a>
+        </div>
+        <p class="tick" style="margin-top:22px;">クレジットカード不要 ・ Zoom / Teams / Google Meet 連携</p>
+      </div>
+
+      <!-- clinical specimen panel -->
+      <div class="specimen" aria-hidden="true">
+        <div class="bar">
+          <i></i><i></i><i></i>
+          <span class="tick">SESSION 04 — LIVE</span>
+        </div>
+        <div class="body">
+          <div class="wave" id="wave"></div>
+          <div class="line-row"><span class="who">田中</span><span class="txt">来期の予算は前年比115%で確定としましょう。</span></div>
+          <div class="line-row"><span class="who">佐藤</span><span class="txt">承知しました。承認資料は金曜までに用意します。</span></div>
+          <div class="line-row"><span class="who">AI</span><span class="txt"><span class="chip">決定</span> 来期予算 = 前年比115%</span></div>
+          <div class="line-row"><span class="who">AI</span><span class="txt"><span class="chip">タスク</span> 承認資料作成 — 担当:佐藤 / 〆切 金</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- trust strip -->
+    <div class="trust">
+      <div class="trust-inner">
+        <span class="label">導入企業 2,400社&nbsp;<span class="dot">/</span>&nbsp;月間処理 180万分</span>
+        <div class="logos" aria-label="導入企業ロゴ">
+          <span>NORTHWIND</span><span>Kasumi</span><span>OBELISK</span><span>蒼天工業</span><span>Lumen</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>記録ではなく、<em>知能</em>を。</h2>
+      <div class="idx"><span class="label">FIG. 01</span><b>04</b><span class="tick">CAPABILITIES</span></div>
+    </div>
+
+    <div class="features reveal">
+      <div class="feat">
+        <span class="no">01 — REALTIME</span>
+        <svg class="ico" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="20" width="3" height="8" stroke-width="0" fill="#0c0e12"/>
+          <rect x="13" y="14" width="3" height="20" data-blue stroke-width="0" fill="#1b3bff"/>
+          <rect x="20" y="8" width="3" height="32" stroke-width="0" fill="#0c0e12"/>
+          <rect x="27" y="16" width="3" height="16" data-blue stroke-width="0" fill="#1b3bff"/>
+          <rect x="34" y="12" width="3" height="24" stroke-width="0" fill="#0c0e12"/>
+          <rect x="41" y="20" width="3" height="8" data-blue stroke-width="0" fill="#1b3bff"/>
+        </svg>
+        <h3>リアルタイム文字起こし</h3>
+        <p>日本語特化の音声認識エンジンが、専門用語や社名・人名も高精度に変換。話している横から議事録が立ち上がり、会議の終了と同時に清書済みの記録が完成します。</p>
+      </div>
+
+      <div class="feat">
+        <span class="no">02 — EXTRACT</span>
+        <svg class="ico" viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round">
+          <path d="M10 14 H30" stroke="#0c0e12"/>
+          <path d="M10 24 H38" stroke="#0c0e12"/>
+          <path d="M10 34 H24" stroke="#0c0e12"/>
+          <circle cx="38" cy="36" r="6" data-blue stroke="#1b3bff"/>
+          <path d="M35.5 36 l1.7 1.8 L41 33.8" stroke="#1b3bff"/>
+        </svg>
+        <h3>決定事項とタスクを自動抽出</h3>
+        <p>「誰が・何を・いつまでに」をAIが構造化。決定・宿題・論点を色分けし、担当者と期限を付与します。抽出したタスクはそのままTodoやチケットへ送れます。</p>
+      </div>
+
+      <div class="feat">
+        <span class="no">03 — SUMMARY</span>
+        <svg class="ico" viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="30" height="30" rx="3" stroke="#0c0e12"/>
+          <path d="M16 19 H32" data-blue stroke="#1b3bff"/>
+          <path d="M16 26 H32" stroke="#0c0e12"/>
+          <path d="M16 32 H26" stroke="#0c0e12"/>
+        </svg>
+        <h3>1クリックで要約レポート</h3>
+        <p>60分の会議を15秒で要約。3行サマリー、論点別まとめ、ネクストアクションの3層で出力し、欠席者にもそのまま共有可能。全文検索で過去の発言まで遡れます。</p>
+      </div>
+
+      <div class="feat">
+        <span class="no">04 — SECURE</span>
+        <svg class="ico" viewBox="0 0 48 48" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 7 L38 13 V25 C38 34 32 39 24 42 C16 39 10 34 10 25 V13 Z" stroke="#0c0e12"/>
+          <path d="M18 24 l4.5 4.5 L31 19" data-blue stroke="#1b3bff"/>
+        </svg>
+        <h3>エンタープライズ級セキュリティ</h3>
+        <p>通信・保存ともに暗号化し、データは国内リージョンで保管。ISO 27001 / SOC 2 準拠、SSO・監査ログ・権限管理に対応し、AI学習へのデータ転用は一切行いません。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== USE CASES ===================== -->
+<section id="scenes">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>あらゆる<em>会議</em>の、その後ろで。</h2>
+      <div class="idx"><span class="label">FIG. 02</span><b>03</b><span class="tick">SCENARIOS</span></div>
+    </div>
+
+    <div class="scenes reveal">
+      <div class="scene">
+        <div class="big">A</div>
+        <div>
+          <div class="role">SALES / 営業</div>
+          <h3>商談メモを、即CRMへ</h3>
+        </div>
+        <p>商談中はお客様の目を見て話すことに集中。終了と同時に要点・確度・宿題が整い、SalesforceやHubSpotへ自動連携。日報作成の30分が消え、次の一手に時間を回せます。</p>
+      </div>
+
+      <div class="scene">
+        <div class="big">B</div>
+        <div>
+          <div class="role">PRODUCT / 開発</div>
+          <h3>仕様の「言った言わない」をなくす</h3>
+        </div>
+        <p>定例やスプリントレビューの決定を逐語＋要約で残し、論点ごとに検索。仕様変更の経緯がすべて辿れるため、認識のズレや手戻りを未然に防ぎます。</p>
+      </div>
+
+      <div class="scene">
+        <div class="big">C</div>
+        <div>
+          <div class="role">BOARD / 経営・管理</div>
+          <h3>役員会・面談の記録を正確に</h3>
+        </div>
+        <p>取締役会の議事録や1on1の記録を、発言の正確さを保ったまま自動生成。テンプレートに沿った体裁で出力でき、ガバナンス文書としての保管・監査にも耐えます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BENEFITS ===================== -->
+<section id="benefits" style="padding-bottom:60px;">
+  <div class="wrap">
+    <div class="benefits reveal">
+      <div class="sec-head">
+        <h2>導入効果は、<em>数字</em>で出る。</h2>
+        <div class="idx"><span class="label" style="color:#9a988f;">FIG. 03</span><b style="color:#1b3bff;">ROI</b></div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="big">-83<i>%</i></div>
+          <div class="cap">議事録の作成・清書にかけていた時間を削減。1会議あたり平均25分の手作業が消えます。</div>
+        </div>
+        <div class="metric">
+          <div class="big">98<i>.4%</i></div>
+          <div class="cap">日本語音声認識の文字起こし精度。固有名詞辞書の登録でさらに向上します。</div>
+        </div>
+        <div class="metric">
+          <div class="big">15<i>秒</i></div>
+          <div class="cap">60分会議の要約レポート生成にかかる時間。会議を閉じる前に共有が完了します。</div>
+        </div>
+      </div>
+      <p class="ben-note">「議事録係」という役割を、組織から無くす。<br />Minutes AI が目指すのは、人が記録から解放される会議です。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PRICING ===================== -->
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>透明な、<em>3</em>つの料金。</h2>
+      <div class="idx"><span class="label">FIG. 04</span><b>¥</b><span class="tick">PER USER / MONTH</span></div>
+    </div>
+
+    <div class="plans reveal">
+      <!-- Starter -->
+      <div class="plan">
+        <div class="pname">Starter</div>
+        <div class="ptag">個人・少人数チーム</div>
+        <div class="price"><span class="yen">¥</span><b>0</b><span class="per">/ ユーザー・月</span></div>
+        <p class="pdesc">まずは無料で議事録の自動化を体験。</p>
+        <ul>
+          <li>月10時間までの文字起こし</li>
+          <li>リアルタイム議事録 &amp; 要約</li>
+          <li>決定・タスクの自動抽出</li>
+          <li>過去30日分の保存</li>
+        </ul>
+        <a class="pbtn" href="#cta">無料で始める</a>
+      </div>
+
+      <!-- Business (featured) -->
+      <div class="plan feat-plan">
+        <span class="badge">最も人気</span>
+        <div class="pname">Business</div>
+        <div class="ptag">成長チームの標準プラン</div>
+        <div class="price"><span class="yen">¥</span><b>1,800</b><span class="per">/ ユーザー・月</span></div>
+        <p class="pdesc">無制限の文字起こしと連携で、業務に組み込む。</p>
+        <ul>
+          <li>文字起こし時間 無制限</li>
+          <li>Zoom / Teams / Meet 自動連携</li>
+          <li>Slack・Salesforce 等へ連携</li>
+          <li>固有名詞辞書 &amp; テンプレート</li>
+          <li>全文検索 / 無期限保存</li>
+          <li>優先サポート</li>
+        </ul>
+        <a class="pbtn" href="#cta">14日間 無料で試す</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="plan">
+        <div class="pname">Enterprise</div>
+        <div class="ptag">大規模・統制重視</div>
+        <div class="price"><b style="font-size:42px;">応相談</b></div>
+        <p class="pdesc">セキュリティと運用を、組織要件に合わせて。</p>
+        <ul>
+          <li>SSO / SAML・監査ログ</li>
+          <li>権限・組織階層の細粒度管理</li>
+          <li>専用リージョン / データ保管契約</li>
+          <li>SLA &amp; 専任カスタマーサクセス</li>
+          <li>API・オンプレ連携</li>
+        </ul>
+        <a class="pbtn" href="#cta">営業に相談する</a>
+      </div>
+    </div>
+    <p class="price-note">※ 表示価格は税抜・年払い時の月額換算です。月払いも選択いただけます。いつでも解約可能。</p>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>よくある<em>質問</em>。</h2>
+      <div class="idx"><span class="label">FIG. 05</span><b>?</b><span class="tick">FAQ</span></div>
+    </div>
+
+    <div class="faq reveal">
+      <details class="qa">
+        <summary><span class="qn">Q.01</span><span class="qq">対応している会議ツールは？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>Zoom、Microsoft Teams、Google Meet とカレンダー連携し、予約された会議に自動で参加して記録します。対面会議も、スマートフォンやPCのマイクから直接録音・文字起こしが可能です。録画ファイル（mp3 / mp4 / wav）のアップロード書き起こしにも対応しています。</p></div>
+      </details>
+
+      <details class="qa">
+        <summary><span class="qn">Q.02</span><span class="qq">文字起こしの精度はどのくらい？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>クリアな音声環境で日本語の認識精度は平均98.4%です。話者の区別（ダイアライゼーション）にも対応しています。社名・製品名・人名などは固有名詞辞書に登録することで、専門性の高い会議でも精度がさらに向上します。</p></div>
+      </details>
+
+      <details class="qa">
+        <summary><span class="qn">Q.03</span><span class="qq">データのセキュリティは大丈夫？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>通信・保存ともに暗号化し、データは国内リージョンで管理しています。ISO 27001 および SOC 2 Type II に準拠し、お客様の会議データをAIモデルの学習に使用することは一切ありません。Enterpriseプランでは専用リージョンやデータ保管契約（DPA）にも対応します。</p></div>
+      </details>
+
+      <details class="qa">
+        <summary><span class="qn">Q.04</span><span class="qq">無料プランだけで使い続けられますか？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>はい。Starterプランは無期限で無料です。月10時間までの文字起こしと、議事録・要約・タスク抽出といった中核機能をご利用いただけます。外部ツール連携や無制限の文字起こしが必要になった段階で、Businessプランへご検討ください。</p></div>
+      </details>
+
+      <details class="qa">
+        <summary><span class="qn">Q.05</span><span class="qq">既存ツールとの連携や移行は？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>Slack・Notion・Salesforce・HubSpot・Google Workspace など主要SaaSと標準連携しています。要約やタスクを各ツールへ自動送信でき、APIによる独自連携も可能です。導入時はカスタマーサクセスが初期設定とワークフロー設計をご支援します。</p></div>
+      </details>
+
+      <details class="qa">
+        <summary><span class="qn">Q.06</span><span class="qq">解約や契約変更はいつでもできますか？</span><span class="plus">+</span></summary>
+        <div class="ans"><p>いつでも管理画面からプラン変更・解約が可能で、解約金や最低利用期間はありません。年払いの途中解約でも、残期間は日割りでご返金します。データは解約後も一定期間エクスポート可能です。</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="final" id="cta">
+  <div class="wrap">
+    <span class="label reveal" style="display:block; margin-bottom:30px;"><span class="dot">●</span>&nbsp; START NOW / 今日から</span>
+    <h2 class="reveal">
+      話そう。<br />
+      あとは<span class="blue">AI</span>が<span class="serif">書く</span>。
+    </h2>
+    <p class="reveal">次の会議から、議事録はもう書かなくていい。14日間の無料トライアルを、クレジットカードなしで。</p>
+    <div class="hero-actions reveal">
+      <a class="btn btn-primary" href="#" onclick="return false;">無料トライアルを始める <span class="arrow">↗</span></a>
+      <a class="btn btn-ghost" href="#" onclick="return false;">デモを予約する</a>
+    </div>
+    <p class="tick micro reveal">セットアップ3分 ・ 既存ツールにそのまま接続 ・ いつでも解約OK</p>
+  </div>
+</section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top" style="margin-bottom:18px;">
+          <span class="mark"><span></span><span></span><span></span></span>
+          <b>Minutes<i> AI</i></b>
+        </a>
+        <p class="foot-lede">会議を、観測可能にする。記録から解放された組織のためのAI議事録基盤。</p>
+      </div>
+      <div>
+        <h4>製品</h4>
+        <a href="#features">特徴</a>
+        <a href="#scenes">利用シーン</a>
+        <a href="#pricing">料金プラン</a>
+        <a href="#cta">無料トライアル</a>
+      </div>
+      <div>
+        <h4>会社</h4>
+        <a href="#">運営会社</a>
+        <a href="#">採用情報</a>
+        <a href="#">ニュース</a>
+        <a href="#">お問い合わせ</a>
+      </div>
+      <div>
+        <h4>リソース</h4>
+        <a href="#faq">FAQ</a>
+        <a href="#">セキュリティ</a>
+        <a href="#">利用規約</a>
+        <a href="#">プライバシー</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span class="tick">© 2026 MINUTES AI INC. — ALL RIGHTS RESERVED</span>
+      <span class="tick">DESIGNED IN TOKYO / SYS.REC 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // mobile nav toggle
+  (function () {
+    var b = document.getElementById('burger'),
+        n = document.getElementById('nav');
+    if (b) b.addEventListener('click', function () { n.classList.toggle('open'); });
+    n && n.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') n.classList.remove('open');
+    });
+  })();
+
+  // generate hero waveform bars
+  (function () {
+    var w = document.getElementById('wave');
+    if (!w) return;
+    for (var i = 0; i < 34; i++) {
+      var bar = document.createElement('i');
+      bar.style.animationDelay = (i * 0.045).toFixed(2) + 's';
+      bar.style.opacity = (0.45 + Math.random() * 0.5).toFixed(2);
+      w.appendChild(bar);
+    }
+  })();
+
+  // scroll reveal
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+</body>
+</html>

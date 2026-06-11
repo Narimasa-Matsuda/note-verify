@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minutes AI — 会議を、記録から意思決定へ。</title>
+<meta name="description" content="Minutes AIは、商談・社内会議・1on1の音声を自動で文字起こしし、要約とToDoまで生成するAI議事録SaaSです。" />
+
+<!--
+  ============================================================================
+  web-artifacts-builder スキル適用ノート（実装方針）
+  - スキルは React + Tailwind + shadcn/ui のコンポーネント志向 + 単一HTMLへの
+    バンドルを想定。本成果物はその思想を踏襲し、React18(CDN)+Babelで
+    コンポーネント分割し、最終的に1枚の自己完結HTMLとして書き出す。
+  - shadcn流の「HSL CSS変数によるデザイントークン」設計を :root に移植。
+  - アンチAIスロップ指針を遵守:
+      * 紫グラデを使わず、ティール×インクブルーの寒色系で信頼感を表現
+      * 均一な角丸を避け、要素ごとに半径を変える
+      * Interフォントを使わず、和文=Noto Sans JP / 見出し欧文=Space Grotesk
+      * 中央寄せ一辺倒を避け、非対称・グリッドのメリハリ
+  - CDNが落ちても崩れないよう、<noscript>と素のCSSフォールバックを内蔵。
+  ============================================================================
+-->
+
+<!-- Fonts (フォールバックあり: 失敗してもsystem-uiで崩れない) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  /* ===== Design Tokens (shadcn-style HSL variables) ===== */
+  :root{
+    --bg: 210 40% 99%;
+    --surface: 0 0% 100%;
+    --ink: 215 35% 14%;
+    --ink-soft: 215 18% 38%;
+    --muted: 214 30% 95%;
+    --line: 214 25% 90%;
+
+    --brand: 188 78% 38%;      /* teal */
+    --brand-deep: 200 84% 24%; /* ink-blue */
+    --brand-fg: 0 0% 100%;
+    --accent: 28 92% 56%;      /* warm orange — CTA強調用 */
+    --accent-fg: 25 60% 14%;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-pill: 999px;
+
+    --shadow-sm: 0 1px 2px hsl(215 30% 20% / .06), 0 1px 1px hsl(215 30% 20% / .04);
+    --shadow-md: 0 10px 30px -12px hsl(200 60% 20% / .22);
+    --shadow-lg: 0 30px 60px -20px hsl(200 60% 20% / .30);
+
+    --maxw: 1160px;
+    --font-jp: "Noto Sans JP", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    --font-display: "Space Grotesk", "Noto Sans JP", system-ui, sans-serif;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    font-family:var(--font-jp);
+    color:hsl(var(--ink));
+    background:
+      radial-gradient(1100px 520px at 88% -8%, hsl(188 78% 38% / .10), transparent 60%),
+      radial-gradient(900px 520px at -6% 6%, hsl(200 84% 24% / .08), transparent 55%),
+      hsl(var(--bg));
+    line-height:1.75;
+    font-feature-settings:"palt";
+    letter-spacing:.01em;
+  }
+  a{ color:inherit; text-decoration:none; }
+  img{ max-width:100%; }
+  h1,h2,h3{ line-height:1.25; letter-spacing:.005em; margin:0; }
+  p{ margin:0; }
+  .wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:24px; }
+  .display{ font-family:var(--font-display); }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-display); font-weight:600; font-size:.78rem;
+    letter-spacing:.16em; text-transform:uppercase;
+    color:hsl(var(--brand-deep));
+    background:hsl(var(--brand) / .10);
+    border:1px solid hsl(var(--brand) / .22);
+    padding:6px 14px; border-radius:var(--radius-pill);
+  }
+  .section{ padding:96px 0; position:relative; }
+  .section-head{ max-width:680px; margin-bottom:52px; }
+  .section-head h2{
+    font-size:clamp(1.7rem, 1.1rem + 2.4vw, 2.7rem);
+    font-weight:900; margin:18px 0 14px; letter-spacing:-.01em;
+  }
+  .section-head p{ color:hsl(var(--ink-soft)); font-size:1.04rem; }
+  .lead-line{ width:54px; height:4px; border-radius:4px;
+    background:linear-gradient(90deg, hsl(var(--brand)), hsl(var(--accent)));
+    margin-bottom:6px; }
+
+  /* Buttons */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    font-family:var(--font-display); font-weight:600; font-size:1rem;
+    padding:14px 26px; border-radius:var(--radius-pill);
+    border:1px solid transparent; cursor:pointer; transition:.18s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    color:hsl(var(--accent-fg));
+    background:linear-gradient(180deg, hsl(34 95% 62%), hsl(var(--accent)));
+    box-shadow:0 10px 24px -8px hsl(var(--accent) / .55), inset 0 1px 0 hsl(0 0% 100% / .4);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 30px -10px hsl(var(--accent) / .65), inset 0 1px 0 hsl(0 0% 100% / .4); }
+  .btn-dark{
+    color:hsl(var(--brand-fg));
+    background:linear-gradient(180deg, hsl(var(--brand-deep)), hsl(202 90% 18%));
+    box-shadow:var(--shadow-md);
+  }
+  .btn-dark:hover{ transform:translateY(-2px); }
+  .btn-ghost{
+    color:hsl(var(--ink)); background:hsl(var(--surface));
+    border-color:hsl(var(--line)); box-shadow:var(--shadow-sm);
+  }
+  .btn-ghost:hover{ border-color:hsl(var(--brand) / .5); color:hsl(var(--brand-deep)); }
+  .btn-block{ width:100%; }
+
+  /* Card base */
+  .card{
+    background:hsl(var(--surface));
+    border:1px solid hsl(var(--line));
+    box-shadow:var(--shadow-sm);
+  }
+
+  /* ===== Header ===== */
+  header.site{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:saturate(1.4) blur(10px);
+    background:hsl(var(--surface) / .82);
+    border-bottom:1px solid hsl(var(--line));
+  }
+  .nav{ display:flex; align-items:center; gap:28px; height:68px; }
+  .brand{ display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:700; font-size:1.18rem; }
+  .brand .logo{
+    width:34px; height:34px; border-radius:10px 10px 10px 3px;
+    background:linear-gradient(140deg, hsl(var(--brand)), hsl(var(--brand-deep)));
+    display:grid; place-items:center; color:#fff; box-shadow:var(--shadow-sm);
+    flex:0 0 auto;
+  }
+  .nav-links{ display:flex; gap:24px; margin-left:14px; }
+  .nav-links a{ color:hsl(var(--ink-soft)); font-size:.95rem; font-weight:500; padding:6px 2px; border-bottom:2px solid transparent; transition:.15s; }
+  .nav-links a:hover{ color:hsl(var(--brand-deep)); border-color:hsl(var(--brand)); }
+  .nav-cta{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+  .nav-cta .login{ font-weight:500; color:hsl(var(--ink-soft)); font-size:.95rem; }
+  .nav-cta .login:hover{ color:hsl(var(--ink)); }
+  .burger{ display:none; margin-left:auto; width:44px; height:44px; border-radius:12px;
+    border:1px solid hsl(var(--line)); background:hsl(var(--surface)); cursor:pointer;
+    flex-direction:column; gap:5px; align-items:center; justify-content:center; }
+  .burger span{ width:20px; height:2px; background:hsl(var(--ink)); border-radius:2px; transition:.2s; }
+  .mobile-menu{ display:none; border-top:1px solid hsl(var(--line)); background:hsl(var(--surface)); }
+  .mobile-menu.open{ display:block; }
+  .mobile-menu .wrap{ padding-block:14px; display:flex; flex-direction:column; gap:4px; }
+  .mobile-menu a{ padding:12px 6px; border-radius:10px; color:hsl(var(--ink-soft)); font-weight:500; }
+  .mobile-menu a:hover{ background:hsl(var(--muted)); color:hsl(var(--ink)); }
+  .mobile-menu .btn{ margin-top:8px; }
+
+  /* ===== Hero ===== */
+  .hero{ padding:74px 0 64px; position:relative; overflow:hidden; }
+  .hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:54px; align-items:center; }
+  .hero h1{
+    font-size:clamp(2.1rem, 1.2rem + 3.6vw, 3.5rem);
+    font-weight:900; letter-spacing:-.015em; margin:20px 0 22px;
+  }
+  .hero h1 .hl{ position:relative; white-space:nowrap; color:hsl(var(--brand-deep)); }
+  .hero h1 .hl::after{ content:""; position:absolute; left:-2px; right:-2px; bottom:.08em; height:.34em;
+    background:hsl(var(--accent) / .35); border-radius:4px; z-index:-1; }
+  .hero p.sub{ font-size:1.12rem; color:hsl(var(--ink-soft)); max-width:540px; }
+  .hero-cta{ display:flex; gap:14px; margin:30px 0 18px; flex-wrap:wrap; }
+  .trust{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; color:hsl(var(--ink-soft)); font-size:.86rem; }
+  .stars{ color:hsl(var(--accent)); letter-spacing:2px; }
+  .logos{ display:flex; gap:18px; align-items:center; margin-top:26px; opacity:.78; flex-wrap:wrap; }
+  .logos .l{ font-family:var(--font-display); font-weight:700; color:hsl(var(--ink-soft)); font-size:.95rem;
+    display:flex; align-items:center; gap:7px; }
+
+  /* Hero visual: faux app window */
+  .app-window{
+    border-radius:var(--radius-lg); background:hsl(var(--surface));
+    border:1px solid hsl(var(--line)); box-shadow:var(--shadow-lg); overflow:hidden;
+    transform:rotate(.6deg);
+  }
+  .aw-bar{ display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid hsl(var(--line));
+    background:hsl(210 40% 98%); }
+  .aw-bar .dot{ width:11px; height:11px; border-radius:50%; }
+  .aw-bar .tab{ margin-left:14px; font-family:var(--font-display); font-size:.82rem; color:hsl(var(--ink-soft)); }
+  .rec{ margin-left:auto; display:inline-flex; align-items:center; gap:7px; font-size:.78rem;
+    color:hsl(348 70% 48%); font-weight:600; }
+  .rec .pulse{ width:9px; height:9px; border-radius:50%; background:hsl(348 75% 52%);
+    box-shadow:0 0 0 0 hsl(348 75% 52% / .5); animation:pulse 1.8s infinite; }
+  @keyframes pulse{ 70%{ box-shadow:0 0 0 9px hsl(348 75% 52% / 0);} 100%{ box-shadow:0 0 0 0 hsl(348 75% 52% / 0);} }
+  .aw-body{ padding:20px; display:grid; gap:14px; }
+  .speak{ display:flex; gap:11px; }
+  .speak .av{ width:32px; height:32px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center;
+    color:#fff; font-weight:700; font-size:.8rem; font-family:var(--font-display); }
+  .speak .txt{ font-size:.9rem; color:hsl(var(--ink)); }
+  .speak .who{ font-size:.72rem; color:hsl(var(--ink-soft)); font-weight:700; margin-bottom:2px; }
+  .summary-chip{ margin-top:4px; border-radius:var(--radius-md); padding:14px 16px;
+    background:linear-gradient(180deg, hsl(var(--brand) / .08), hsl(var(--brand) / .04));
+    border:1px solid hsl(var(--brand) / .2); }
+  .summary-chip .h{ font-family:var(--font-display); font-weight:700; font-size:.8rem; color:hsl(var(--brand-deep));
+    display:flex; align-items:center; gap:7px; margin-bottom:8px; }
+  .todo{ display:flex; align-items:center; gap:9px; font-size:.86rem; color:hsl(var(--ink)); padding:3px 0; }
+  .todo .box{ width:17px; height:17px; border-radius:5px; border:2px solid hsl(var(--brand)); flex:0 0 auto;
+    display:grid; place-items:center; color:hsl(var(--brand)); font-size:.7rem; font-weight:900; }
+  .float-stat{ position:absolute; bottom:-18px; left:-22px; background:hsl(var(--surface));
+    border:1px solid hsl(var(--line)); border-radius:var(--radius-md); box-shadow:var(--shadow-md);
+    padding:12px 16px; display:flex; align-items:center; gap:11px; }
+  .float-stat .big{ font-family:var(--font-display); font-weight:700; font-size:1.4rem; color:hsl(var(--brand-deep)); }
+  .float-stat .lbl{ font-size:.74rem; color:hsl(var(--ink-soft)); }
+  .hero-visual{ position:relative; }
+
+  /* ===== Metrics band ===== */
+  .metrics{ display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+    border-radius:var(--radius-lg); overflow:hidden; border:1px solid hsl(var(--line));
+    background:hsl(var(--surface)); box-shadow:var(--shadow-sm); }
+  .metrics .m{ padding:30px 26px; border-right:1px solid hsl(var(--line)); }
+  .metrics .m:last-child{ border-right:none; }
+  .metrics .num{ font-family:var(--font-display); font-weight:700; font-size:2.1rem; color:hsl(var(--brand-deep)); }
+  .metrics .num small{ font-size:1.1rem; }
+  .metrics .cap{ color:hsl(var(--ink-soft)); font-size:.9rem; margin-top:2px; }
+
+  /* ===== Features (asymmetric bento) ===== */
+  .bento{ display:grid; grid-template-columns:repeat(6,1fr); gap:18px; }
+  .feat{ border-radius:var(--radius-md); padding:28px; background:hsl(var(--surface));
+    border:1px solid hsl(var(--line)); box-shadow:var(--shadow-sm); transition:.2s; }
+  .feat:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:hsl(var(--brand) / .35); }
+  .feat.span3{ grid-column:span 3; }
+  .feat.span2{ grid-column:span 2; }
+  .feat.span6{ grid-column:span 6; display:grid; grid-template-columns:1.1fr 1fr; gap:30px; align-items:center;
+    background:linear-gradient(140deg, hsl(var(--brand-deep)), hsl(202 88% 17%)); border:none; color:#fff; }
+  .feat.span6 h3, .feat.span6 p{ color:#fff; }
+  .ficon{ width:46px; height:46px; border-radius:12px 12px 12px 4px; display:grid; place-items:center;
+    background:hsl(var(--brand) / .12); color:hsl(var(--brand-deep)); margin-bottom:16px; }
+  .feat.span6 .ficon{ background:hsl(0 0% 100% / .14); color:#fff; }
+  .feat h3{ font-size:1.18rem; font-weight:700; margin-bottom:8px; }
+  .feat p{ color:hsl(var(--ink-soft)); font-size:.95rem; }
+  .lang-grid{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .lang-grid span{ background:hsl(0 0% 100% / .12); border:1px solid hsl(0 0% 100% / .2);
+    padding:5px 12px; border-radius:var(--radius-pill); font-size:.82rem; }
+
+  /* ===== Use cases ===== */
+  .cases{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .case{ border-radius:var(--radius-md); overflow:hidden; background:hsl(var(--surface));
+    border:1px solid hsl(var(--line)); box-shadow:var(--shadow-sm); transition:.2s; }
+  .case:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+  .case .top{ padding:26px; height:118px; display:flex; align-items:flex-end; position:relative; overflow:hidden; }
+  .case .top .emoji{ font-size:2.4rem; }
+  .case .top .glow{ position:absolute; inset:0; opacity:.85; }
+  .case .body{ padding:22px 26px 26px; }
+  .case h3{ font-size:1.15rem; margin-bottom:8px; }
+  .case p{ color:hsl(var(--ink-soft)); font-size:.93rem; }
+  .case ul{ margin:14px 0 0; padding:0; list-style:none; display:grid; gap:8px; }
+  .case li{ display:flex; gap:9px; font-size:.9rem; color:hsl(var(--ink)); }
+  .case li::before{ content:"→"; color:hsl(var(--brand)); font-weight:700; }
+
+  /* ===== Benefits (split) ===== */
+  .benefit-wrap{ display:grid; grid-template-columns:.9fr 1.1fr; gap:50px; align-items:center; }
+  .benefit-list{ display:grid; gap:16px; }
+  .brow{ display:flex; gap:16px; padding:20px; border-radius:var(--radius-md);
+    background:hsl(var(--surface)); border:1px solid hsl(var(--line)); box-shadow:var(--shadow-sm); }
+  .brow .bi{ width:42px; height:42px; flex:0 0 auto; border-radius:12px; display:grid; place-items:center;
+    background:hsl(var(--brand) / .1); color:hsl(var(--brand-deep)); }
+  .brow h4{ margin:0 0 4px; font-size:1.05rem; }
+  .brow p{ color:hsl(var(--ink-soft)); font-size:.92rem; }
+  .roi-card{ border-radius:var(--radius-lg); padding:34px; color:#fff;
+    background:linear-gradient(150deg, hsl(var(--brand-deep)), hsl(188 70% 26%));
+    box-shadow:var(--shadow-lg); position:relative; overflow:hidden; }
+  .roi-card .rcap{ font-family:var(--font-display); letter-spacing:.1em; text-transform:uppercase; font-size:.74rem;
+    opacity:.85; }
+  .roi-card .rbig{ font-family:var(--font-display); font-weight:700; font-size:3rem; margin:6px 0 2px; }
+  .roi-card .rsub{ opacity:.9; font-size:.95rem; margin-bottom:24px; }
+  .roi-bar{ height:10px; border-radius:6px; background:hsl(0 0% 100% / .18); overflow:hidden; margin-bottom:6px; }
+  .roi-bar i{ display:block; height:100%; border-radius:6px; background:hsl(var(--accent)); }
+  .roi-line{ display:flex; justify-content:space-between; font-size:.82rem; opacity:.9; margin-bottom:18px; }
+
+  /* ===== Pricing ===== */
+  .toggle{ display:inline-flex; align-items:center; gap:12px; margin-bottom:14px; font-size:.92rem; color:hsl(var(--ink-soft)); }
+  .switch{ width:52px; height:30px; border-radius:var(--radius-pill); background:hsl(var(--brand-deep));
+    border:none; cursor:pointer; position:relative; transition:.2s; }
+  .switch i{ position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch.year i{ left:25px; }
+  .save-badge{ background:hsl(var(--accent) / .16); color:hsl(28 80% 36%); font-weight:700;
+    padding:3px 10px; border-radius:var(--radius-pill); font-size:.78rem; }
+  .plans{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; align-items:stretch; }
+  .plan{ border-radius:var(--radius-lg); padding:30px; background:hsl(var(--surface));
+    border:1px solid hsl(var(--line)); box-shadow:var(--shadow-sm); display:flex; flex-direction:column; transition:.2s; }
+  .plan:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+  .plan.featured{ border:2px solid hsl(var(--brand)); box-shadow:var(--shadow-lg); position:relative; }
+  .plan.featured .ribbon{ position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(180deg, hsl(34 95% 62%), hsl(var(--accent))); color:hsl(var(--accent-fg));
+    font-family:var(--font-display); font-weight:700; font-size:.74rem; letter-spacing:.08em;
+    padding:6px 16px; border-radius:var(--radius-pill); box-shadow:var(--shadow-sm); white-space:nowrap; }
+  .plan .pname{ font-family:var(--font-display); font-weight:700; font-size:1.2rem; }
+  .plan .pdesc{ color:hsl(var(--ink-soft)); font-size:.88rem; min-height:42px; margin-top:4px; }
+  .plan .price{ display:flex; align-items:baseline; gap:4px; margin:14px 0 4px; }
+  .plan .price .cur{ font-family:var(--font-display); font-weight:700; font-size:1.2rem; color:hsl(var(--ink-soft)); }
+  .plan .price .amt{ font-family:var(--font-display); font-weight:700; font-size:2.7rem; letter-spacing:-.02em; }
+  .plan .price .per{ color:hsl(var(--ink-soft)); font-size:.9rem; }
+  .plan .pnote{ color:hsl(var(--ink-soft)); font-size:.8rem; min-height:20px; }
+  .plan ul{ list-style:none; padding:0; margin:20px 0 24px; display:grid; gap:11px; }
+  .plan li{ display:flex; gap:10px; font-size:.92rem; align-items:flex-start; }
+  .plan li .ck{ color:hsl(var(--brand)); flex:0 0 auto; margin-top:3px; }
+  .plan li.off{ color:hsl(var(--ink-soft)); opacity:.7; }
+  .plan li.off .ck{ color:hsl(var(--ink-soft)); }
+  .plan .btn{ margin-top:auto; }
+
+  /* ===== FAQ ===== */
+  .faq-grid{ display:grid; grid-template-columns:.8fr 1.2fr; gap:48px; align-items:start; }
+  .faq-list{ display:grid; gap:12px; }
+  .qa{ border-radius:var(--radius-md); background:hsl(var(--surface)); border:1px solid hsl(var(--line));
+    overflow:hidden; box-shadow:var(--shadow-sm); }
+  .qa.open{ border-color:hsl(var(--brand) / .4); }
+  .qa button{ width:100%; text-align:left; background:none; border:none; cursor:pointer; padding:20px 22px;
+    display:flex; align-items:center; gap:16px; font-family:var(--font-jp); font-size:1rem; font-weight:700;
+    color:hsl(var(--ink)); }
+  .qa .qmark{ width:26px; height:26px; flex:0 0 auto; border-radius:8px; display:grid; place-items:center;
+    background:hsl(var(--brand) / .1); color:hsl(var(--brand-deep)); transition:.2s; }
+  .qa.open .qmark{ background:hsl(var(--brand)); color:#fff; transform:rotate(45deg); }
+  .qa .qtext{ flex:1; }
+  .qa .ans{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .qa .ans-inner{ padding:0 22px 20px 64px; color:hsl(var(--ink-soft)); font-size:.95rem; }
+
+  /* ===== Final CTA ===== */
+  .final{ border-radius:var(--radius-lg); padding:62px 54px; position:relative; overflow:hidden; color:#fff;
+    background:linear-gradient(135deg, hsl(var(--brand-deep)), hsl(192 80% 22%)); box-shadow:var(--shadow-lg); }
+  .final::after{ content:""; position:absolute; right:-60px; top:-60px; width:300px; height:300px; border-radius:50%;
+    background:radial-gradient(circle, hsl(var(--accent) / .35), transparent 65%); }
+  .final h2{ font-size:clamp(1.8rem, 1.1rem + 2.6vw, 2.8rem); font-weight:900; max-width:640px; position:relative; }
+  .final p{ max-width:560px; opacity:.92; margin:16px 0 28px; position:relative; font-size:1.05rem; }
+  .final .fcta{ display:flex; gap:14px; flex-wrap:wrap; position:relative; }
+  .final .fnote{ margin-top:18px; font-size:.84rem; opacity:.82; position:relative; }
+
+  /* ===== Footer ===== */
+  footer.site{ padding:64px 0 40px; border-top:1px solid hsl(var(--line)); margin-top:90px; }
+  .foot-grid{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:34px; }
+  .foot-grid h5{ font-family:var(--font-display); font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    color:hsl(var(--ink)); margin:0 0 14px; }
+  .foot-grid a{ display:block; color:hsl(var(--ink-soft)); font-size:.92rem; padding:5px 0; }
+  .foot-grid a:hover{ color:hsl(var(--brand-deep)); }
+  .foot-bottom{ display:flex; justify-content:space-between; align-items:center; margin-top:48px;
+    padding-top:24px; border-top:1px solid hsl(var(--line)); color:hsl(var(--ink-soft)); font-size:.85rem; flex-wrap:wrap; gap:12px; }
+
+  /* ===== Reveal animation ===== */
+  .reveal{ opacity:0; transform:translateY(22px); transition:.6s cubic-bezier(.2,.7,.3,1); }
+  .reveal.in{ opacity:1; transform:none; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 960px){
+    .nav-links, .nav-cta .login, .nav-cta .btn{ display:none; }
+    .burger{ display:flex; }
+    .hero-grid{ grid-template-columns:1fr; gap:40px; }
+    .hero-visual{ max-width:520px; }
+    .metrics{ grid-template-columns:repeat(2,1fr); }
+    .metrics .m:nth-child(2){ border-right:none; }
+    .metrics .m:nth-child(1),.metrics .m:nth-child(2){ border-bottom:1px solid hsl(var(--line)); }
+    .bento{ grid-template-columns:repeat(2,1fr); }
+    .feat.span3,.feat.span2{ grid-column:span 1; }
+    .feat.span6{ grid-column:span 2; grid-template-columns:1fr; }
+    .cases{ grid-template-columns:1fr; }
+    .benefit-wrap{ grid-template-columns:1fr; gap:34px; }
+    .plans{ grid-template-columns:1fr; }
+    .plan.featured{ order:-1; }
+    .faq-grid{ grid-template-columns:1fr; gap:26px; }
+    .final{ padding:44px 28px; }
+    .foot-grid{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width: 540px){
+    .section{ padding:64px 0; }
+    .metrics{ grid-template-columns:1fr; }
+    .metrics .m{ border-right:none; border-bottom:1px solid hsl(var(--line)); }
+    .metrics .m:last-child{ border-bottom:none; }
+    .bento{ grid-template-columns:1fr; }
+    .feat.span3,.feat.span2,.feat.span6{ grid-column:span 1; }
+    .foot-grid{ grid-template-columns:1fr; }
+    .float-stat{ display:none; }
+  }
+
+  /* ===== No-JS fallback: FAQ全開・トグル非表示でも全文読める ===== */
+  noscript .nojs-note{ display:block; }
+  .nojs .qa .ans{ max-height:none !important; }
+  .nojs .qa .ans-inner{ padding-top:0; }
+</style>
+</head>
+<body class="nojs">
+
+<!-- Reactがマウントする領域。JSが無効/CDN失敗でも、下のフォールバックが表示される -->
+<div id="root"></div>
+
+<!--
+  ====== オフライン/CDN失敗フォールバック ======
+  Reactが描画に成功すると #root にレンダリングされ、このフォールバックは
+  JSによって display:none にされる。JSが無ければそのまま静的版が見える。
+-->
+<div id="fallback">
+<!-- HEADER -->
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#top"><span class="logo">◎</span> Minutes<span style="color:hsl(var(--brand))">AI</span></a>
+      <div class="nav-links">
+        <a href="#features">特徴</a>
+        <a href="#usecases">利用シーン</a>
+        <a href="#benefits">導入メリット</a>
+        <a href="#pricing">料金</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="nav-cta">
+        <a class="login" href="#">ログイン</a>
+        <a class="btn btn-ghost" href="#pricing">資料請求</a>
+        <a class="btn btn-primary" href="#cta">無料で始める</a>
+      </div>
+      <button class="burger" id="burger" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </nav>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="wrap">
+      <a href="#features">特徴</a>
+      <a href="#usecases">利用シーン</a>
+      <a href="#benefits">導入メリット</a>
+      <a href="#pricing">料金</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary btn-block" href="#cta">無料で始める</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">⚡ AI議事録 SaaS</span>
+      <h1>会議の音声を、<br><span class="hl">そのまま意思決定</span>に変える。</h1>
+      <p class="sub">Minutes AIは、商談・社内会議・1on1の音声を高精度で文字起こし。話者を自動で識別し、要約・決定事項・ToDoまでをAIが数十秒で生成します。「議事録を書く時間」を、ゼロに。</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#cta">14日間 無料で試す →</a>
+        <a class="btn btn-ghost" href="#features">▶ 30秒でわかる紹介</a>
+      </div>
+      <div class="trust">
+        <span class="stars">★★★★★</span>
+        <span><b>4.8</b>/5.0 — 導入企業の継続率 <b>98%</b></span>
+        <span>・クレジットカード不要</span>
+      </div>
+      <div class="logos">
+        <span style="font-size:.8rem; color:hsl(var(--ink-soft))">導入企業:</span>
+        <span class="l">◢ NorthGate</span>
+        <span class="l">❖ 蒼天物産</span>
+        <span class="l">▲ Yamato Tech</span>
+        <span class="l">⬡ Lumière</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="app-window">
+        <div class="aw-bar">
+          <span class="dot" style="background:#f6685e"></span>
+          <span class="dot" style="background:#fdbc40"></span>
+          <span class="dot" style="background:#34c749"></span>
+          <span class="tab">週次プロジェクト定例 — 2026/06/11</span>
+          <span class="rec"><span class="pulse"></span>REC 24:18</span>
+        </div>
+        <div class="aw-body">
+          <div class="speak">
+            <span class="av" style="background:hsl(var(--brand-deep))">田</span>
+            <div><div class="who">田中（PM）・00:12</div><div class="txt">次のリリースは予定通り6月28日で進めましょう。残課題はAPIの認可周りですね。</div></div>
+          </div>
+          <div class="speak">
+            <span class="av" style="background:hsl(var(--accent))">佐</span>
+            <div><div class="who">佐藤（Eng）・00:31</div><div class="txt">認可は今週中に検証を終えます。負荷試験の担当だけ決めたいです。</div></div>
+          </div>
+          <div class="summary-chip">
+            <div class="h">✦ AI要約 ＆ 決定事項</div>
+            <div class="todo"><span class="box">✓</span> リリース日を6月28日に確定</div>
+            <div class="todo"><span class="box"></span> 認可検証 — 佐藤（今週中）</div>
+            <div class="todo"><span class="box"></span> 負荷試験の担当者を次回までに決定</div>
+          </div>
+        </div>
+      </div>
+      <div class="float-stat">
+        <span class="big">-92%</span>
+        <span class="lbl">議事録<br>作成時間</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METRICS -->
+<section class="wrap" style="margin-top:-8px">
+  <div class="metrics">
+    <div class="m"><div class="num">99.2<small>%</small></div><div class="cap">日本語の文字起こし精度</div></div>
+    <div class="m"><div class="num">40<small>秒</small></div><div class="cap">60分会議の平均要約時間</div></div>
+    <div class="m"><div class="num">12,000<small>社</small></div><div class="cap">国内の導入企業数</div></div>
+    <div class="m"><div class="num">29<small>言語</small></div><div class="cap">対応する文字起こし言語</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="lead-line"></div>
+      <span class="eyebrow">Features</span>
+      <h2>「録る・書く・まとめる」を、AIが全部やる。</h2>
+      <p>会議に集中している間に、Minutes AIが裏側で議事録を完成させます。あなたが手を動かすのは、確認とワンクリックの共有だけ。</p>
+    </div>
+    <div class="bento">
+      <div class="feat span3">
+        <div class="ficon">🎙️</div>
+        <h3>高精度リアルタイム文字起こし</h3>
+        <p>専門用語・社名・製品名を学習する辞書機能を搭載。日本語の文字起こし精度99.2%で、訛りや早口の発言も正確に記録します。</p>
+      </div>
+      <div class="feat span3">
+        <div class="ficon">👥</div>
+        <h3>話者の自動識別</h3>
+        <p>誰が何を発言したかを自動でラベリング。複数人が同時に話す会議でも、発言者ごとに整理された議事録を生成します。</p>
+      </div>
+      <div class="feat span2">
+        <div class="ficon">✦</div>
+        <h3>ワンクリック要約</h3>
+        <p>長い会議も、決定事項・論点・結論の3軸で自動要約。読むべき要点が一目でわかります。</p>
+      </div>
+      <div class="feat span2">
+        <div class="ficon">✅</div>
+        <h3>ToDoの自動抽出</h3>
+        <p>「誰が・いつまでに・何を」をAIが抽出し、担当者と期限つきのタスクとして出力します。</p>
+      </div>
+      <div class="feat span2">
+        <div class="ficon">🔗</div>
+        <h3>豊富な連携</h3>
+        <p>Slack・Teams・Notion・Salesforceへ自動連携。要約とタスクを使い慣れたツールへ即共有。</p>
+      </div>
+      <div class="feat span6">
+        <div>
+          <div class="ficon">🌐</div>
+          <h3>グローバル会議も、言語の壁なく。</h3>
+          <p>29言語に対応し、英語の会議を日本語で要約することも可能。海外拠点やオフショア開発との会議も、言語を意識せず記録・共有できます。</p>
+          <div class="lang-grid">
+            <span>日本語</span><span>English</span><span>中文</span><span>한국어</span><span>Français</span><span>Deutsch</span><span>+23言語</span>
+          </div>
+        </div>
+        <div style="border-radius:var(--radius-md); background:hsl(0 0% 100% / .08); border:1px solid hsl(0 0% 100% / .15); padding:22px;">
+          <div style="font-family:var(--font-display); font-size:.8rem; opacity:.8; letter-spacing:.08em">LIVE TRANSLATION</div>
+          <div style="margin-top:12px; font-size:.92rem; opacity:.7">EN — "Let's finalize the budget by Friday."</div>
+          <div style="margin-top:6px; font-size:1rem; font-weight:700">JA — 予算を金曜までに確定させましょう。</div>
+          <div style="margin-top:16px; height:1px; background:hsl(0 0% 100% / .15)"></div>
+          <div style="margin-top:12px; font-size:.92rem; opacity:.7">EN — "I'll share the deck after the call."</div>
+          <div style="margin-top:6px; font-size:1rem; font-weight:700">JA — 通話後に資料を共有します。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section class="section" id="usecases" style="background:linear-gradient(180deg, hsl(var(--muted) / .5), transparent)">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="lead-line"></div>
+      <span class="eyebrow">Use Cases</span>
+      <h2>あらゆる「話す仕事」を、資産に変える。</h2>
+      <p>部門や職種を問わず、会議のあるところすべてでMinutes AIは力を発揮します。</p>
+    </div>
+    <div class="cases">
+      <div class="case">
+        <div class="top"><div class="glow" style="background:radial-gradient(120px 120px at 80% 20%, hsl(var(--brand) / .25), transparent), hsl(var(--brand) / .07)"></div><span class="emoji" style="position:relative">🤝</span></div>
+        <div class="body">
+          <h3>営業・商談</h3>
+          <p>商談内容を自動でCRMに記録。ヒアリング漏れを防ぎ、上司への報告やナレッジ共有を即座に。</p>
+          <ul><li>議事録をSalesforceへ自動連携</li><li>顧客の課題・要望を構造化</li><li>次回アクションを自動提案</li></ul>
+        </div>
+      </div>
+      <div class="case">
+        <div class="top"><div class="glow" style="background:radial-gradient(120px 120px at 80% 20%, hsl(var(--accent) / .25), transparent), hsl(var(--accent) / .07)"></div><span class="emoji" style="position:relative">🧩</span></div>
+        <div class="body">
+          <h3>社内定例・プロジェクト</h3>
+          <p>定例会の決定事項とタスクを自動で整理。参加できなかったメンバーも要約だけで状況を把握できます。</p>
+          <ul><li>決定事項とToDoを自動抽出</li><li>過去の会議を横断検索</li><li>欠席者へ要約を自動配信</li></ul>
+        </div>
+      </div>
+      <div class="case">
+        <div class="top"><div class="glow" style="background:radial-gradient(120px 120px at 80% 20%, hsl(var(--brand-deep) / .3), transparent), hsl(var(--brand-deep) / .08)"></div><span class="emoji" style="position:relative">💬</span></div>
+        <div class="body">
+          <h3>1on1・採用面接</h3>
+          <p>対話に集中しながら記録は自動化。評価コメントや振り返りメモの作成工数を大きく削減します。</p>
+          <ul><li>面接評価の下書きを自動生成</li><li>1on1の振り返りを蓄積</li><li>センシティブ情報はマスキング</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="section" id="benefits">
+  <div class="wrap benefit-wrap">
+    <div>
+      <div class="lead-line"></div>
+      <span class="eyebrow">Why Minutes AI</span>
+      <h2 style="font-size:clamp(1.7rem,1.1rem+2.4vw,2.7rem); font-weight:900; margin:18px 0 14px">導入すると、組織の時間が増える。</h2>
+      <p style="color:hsl(var(--ink-soft)); margin-bottom:26px">議事録という見えにくいコストを定量化し、削減する。Minutes AIは「会議の生産性」を経営指標に変えます。</p>
+      <div class="benefit-list">
+        <div class="brow"><div class="bi">⏱️</div><div><h4>議事録作成を月20時間削減</h4><p>1人あたり月20時間以上かかっていた記録作業を自動化。本来注力すべき業務に時間を取り戻します。</p></div></div>
+        <div class="brow"><div class="bi">🔍</div><div><h4>決定事項が埋もれない</h4><p>全社の会議を横断検索。「あの件、どうなった?」を数秒で解決し、認識のズレをなくします。</p></div></div>
+        <div class="brow"><div class="bi">🔒</div><div><h4>エンタープライズ水準のセキュリティ</h4><p>ISO27001取得・国内データセンター・通信暗号化・SSO対応。情報システム部門も安心して導入できます。</p></div></div>
+      </div>
+    </div>
+    <div class="roi-card">
+      <div class="rcap">月間 ROI シミュレーション</div>
+      <div class="rbig">¥1,840,000</div>
+      <div class="rsub">削減できる人件費の目安（50名・1人月20時間・時給2,300円換算）</div>
+      <div class="roi-bar"><i style="width:92%"></i></div>
+      <div class="roi-line"><span>議事録作成時間</span><span>-92%</span></div>
+      <div class="roi-bar"><i style="width:78%; background:hsl(var(--brand))"></i></div>
+      <div class="roi-line"><span>情報共有の遅延</span><span>-78%</span></div>
+      <div class="roi-bar"><i style="width:64%; background:hsl(46 95% 60%)"></i></div>
+      <div class="roi-line" style="margin-bottom:0"><span>会議の振り返り工数</span><span>-64%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing" style="background:linear-gradient(180deg, hsl(var(--muted) / .5), transparent)">
+  <div class="wrap">
+    <div class="section-head" style="max-width:760px">
+      <div class="lead-line"></div>
+      <span class="eyebrow">Pricing</span>
+      <h2>チームの規模に合わせた、明朗な料金。</h2>
+      <p>すべてのプランが14日間無料。年額契約なら2ヶ月分お得になります。</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <div class="pname">Starter</div>
+        <div class="pdesc">個人・小規模チームで議事録を試したい方に。</div>
+        <div class="price"><span class="cur">¥</span><span class="amt">980</span><span class="per">/ ユーザー・月</span></div>
+        <div class="pnote">年額契約 ¥9,800/年（2ヶ月分お得）</div>
+        <ul>
+          <li><span class="ck">✓</span> 月10時間までの文字起こし</li>
+          <li><span class="ck">✓</span> AI要約・ToDo抽出</li>
+          <li><span class="ck">✓</span> 話者の自動識別</li>
+          <li><span class="ck">✓</span> Slack / Notion 連携</li>
+          <li class="off"><span class="ck">×</span> 横断検索・分析</li>
+          <li class="off"><span class="ck">×</span> SSO / 監査ログ</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#cta">無料で始める</a>
+      </div>
+      <div class="plan featured">
+        <span class="ribbon">★ 一番人気</span>
+        <div class="pname">Business</div>
+        <div class="pdesc">部門での本格運用に。ほとんどのチームに最適。</div>
+        <div class="price"><span class="cur">¥</span><span class="amt">2,480</span><span class="per">/ ユーザー・月</span></div>
+        <div class="pnote">年額契約 ¥24,800/年（2ヶ月分お得）</div>
+        <ul>
+          <li><span class="ck">✓</span> 文字起こし<b>無制限</b></li>
+          <li><span class="ck">✓</span> Starterの全機能</li>
+          <li><span class="ck">✓</span> 全会議の横断検索・分析</li>
+          <li><span class="ck">✓</span> Salesforce / Teams 連携</li>
+          <li><span class="ck">✓</span> 29言語 翻訳要約</li>
+          <li><span class="ck">✓</span> 優先サポート</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#cta">14日間 無料で試す</a>
+      </div>
+      <div class="plan">
+        <div class="pname">Enterprise</div>
+        <div class="pdesc">全社導入・高度なガバナンスが必要な組織に。</div>
+        <div class="price"><span class="amt" style="font-size:2rem">お問い合わせ</span></div>
+        <div class="pnote">専任の導入支援担当がつきます</div>
+        <ul>
+          <li><span class="ck">✓</span> Businessの全機能</li>
+          <li><span class="ck">✓</span> SSO / SCIM / 監査ログ</li>
+          <li><span class="ck">✓</span> 専用辞書・カスタム要約</li>
+          <li><span class="ck">✓</span> 国内DC・データ保管要件対応</li>
+          <li><span class="ck">✓</span> SLA保証・専任CS</li>
+          <li><span class="ck">✓</span> オンプレ連携相談可</li>
+        </ul>
+        <a class="btn btn-dark btn-block" href="#cta">相談する</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="wrap faq-grid">
+    <div>
+      <div class="lead-line"></div>
+      <span class="eyebrow">FAQ</span>
+      <h2 style="font-size:clamp(1.7rem,1.1rem+2.4vw,2.6rem); font-weight:900; margin:18px 0 14px">よくあるご質問</h2>
+      <p style="color:hsl(var(--ink-soft))">ここにない疑問は、いつでもお気軽にお問い合わせください。導入相談は無料です。</p>
+      <a class="btn btn-ghost" style="margin-top:20px" href="#cta">サポートに相談する</a>
+    </div>
+    <div class="faq-list" id="faqList">
+      <!-- JS版で生成。フォールバックでは静的に全文表示 -->
+      <div class="qa open"><button><span class="qmark">＋</span><span class="qtext">どのくらいの精度で文字起こしできますか?</span></button><div class="ans"><div class="ans-inner">日本語の標準的な会議音声で99.2%の精度を実現しています。業界特有の専門用語や社名・製品名は、辞書機能に登録することでさらに精度が向上します。マイク環境が良好な場合、ほぼ修正不要のレベルで議事録が生成されます。</div></div></div>
+      <div class="qa"><button><span class="qmark">＋</span><span class="qtext">ZoomやTeamsの会議でも使えますか?</span></button><div class="ans"><div class="ans-inner">はい。Zoom・Microsoft Teams・Google Meetに対応しており、専用ボットが会議に参加して自動で録音・文字起こしを行います。対面会議の場合も、スマホアプリやブラウザから直接録音できます。</div></div></div>
+      <div class="qa"><button><span class="qmark">＋</span><span class="qtext">セキュリティ面が心配です。データはどう扱われますか?</span></button><div class="ans"><div class="ans-inner">通信・保管データはすべて暗号化し、国内のデータセンターで管理しています。ISO27001を取得済みで、お客様の音声データがAIモデルの学習に二次利用されることはありません。Enterpriseプランではデータ保管期間の指定やマスキングにも対応します。</div></div></div>
+      <div class="qa"><button><span class="qmark">＋</span><span class="qtext">無料トライアルに条件はありますか?</span></button><div class="ans"><div class="ans-inner">クレジットカード登録なしで、14日間すべての機能をお試しいただけます。トライアル終了後に自動課金されることはありません。継続される場合のみ、管理画面からプランをお選びください。</div></div></div>
+      <div class="qa"><button><span class="qmark">＋</span><span class="qtext">既存のツールと連携できますか?</span></button><div class="ans"><div class="ans-inner">Slack・Microsoft Teams・Notion・Salesforce・Google Workspaceなど主要なツールと標準連携しています。要約やToDoを自動投稿したり、議事録を指定のフォルダへ保存したりできます。API・Webhookも提供しているため、独自システムとの連携も可能です。</div></div></div>
+      <div class="qa"><button><span class="qmark">＋</span><span class="qtext">解約はいつでもできますか?</span></button><div class="ans"><div class="ans-inner">はい、いつでも管理画面から解約いただけます。月額プランは当月末まで、年額プランは契約期間満了までご利用いただけます。最低利用期間の縛りはありません。解約後もエクスポート機能で議事録データを保全できます。</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="wrap" id="cta" style="padding-bottom:10px">
+  <div class="final">
+    <h2>その会議、もう「書かなくていい」。</h2>
+    <p>Minutes AIなら、今日の午後の会議から議事録が自動で完成します。14日間の無料トライアルで、チームに戻ってくる時間を体感してください。</p>
+    <div class="fcta">
+      <a class="btn btn-primary" href="#">14日間 無料で始める →</a>
+      <a class="btn btn-ghost" style="background:hsl(0 0% 100% / .12); color:#fff; border-color:hsl(0 0% 100% / .3)" href="#">導入相談を予約する</a>
+    </div>
+    <div class="fnote">✓ クレジットカード不要　✓ 5分でセットアップ完了　✓ いつでも解約可能</div>
+  </div>
+</section>
+</main>
+
+<!-- FOOTER -->
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top" style="font-size:1.2rem"><span class="logo">◎</span> Minutes<span style="color:hsl(var(--brand))">AI</span></a>
+        <p style="color:hsl(var(--ink-soft)); font-size:.9rem; margin-top:14px; max-width:300px">会議を、記録から意思決定へ。話すだけで議事録が完成するAIプラットフォーム。</p>
+      </div>
+      <div><h5>製品</h5><a href="#features">機能一覧</a><a href="#pricing">料金プラン</a><a href="#usecases">利用シーン</a><a href="#">アップデート情報</a></div>
+      <div><h5>会社情報</h5><a href="#">運営会社</a><a href="#">採用情報</a><a href="#">ニュース</a><a href="#">お問い合わせ</a></div>
+      <div><h5>サポート</h5><a href="#faq">よくある質問</a><a href="#">ヘルプセンター</a><a href="#">導入事例</a><a href="#">セキュリティ</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Minutes AI, Inc. All rights reserved.</span>
+      <span style="display:flex; gap:18px"><a href="#">利用規約</a><a href="#">プライバシーポリシー</a><a href="#">特定商取引法</a></span>
+    </div>
+  </div>
+</footer>
+</div><!-- /#fallback -->
+
+<noscript>
+  <div style="position:fixed; bottom:0; left:0; right:0; background:hsl(var(--brand-deep)); color:#fff; text-align:center; padding:10px; font-size:.85rem; font-family:var(--font-jp)">
+    JavaScriptが無効のため簡易表示中です。FAQはすべて展開されています。
+  </div>
+</noscript>
+
+<!-- ============ React (CDN) — コンポーネント志向の本体 ============ -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+/*
+  web-artifacts-builder のコンポーネント志向を踏襲し、UIを小さな関数コンポーネントへ分割。
+  shadcn由来のトークン(:root のHSL変数)を className/style から参照する。
+  Reactのマウントに成功した時だけ静的フォールバックを隠す（堅牢なプログレッシブ・エンハンスメント）。
+*/
+const { useState, useEffect, useRef } = React;
+
+/* ---- 再利用UI: Button (shadcn Button相当のvariant設計) ---- */
+function Button({ variant = "primary", block, children, href = "#", style, ...rest }) {
+  const cls = `btn btn-${variant}${block ? " btn-block" : ""}`;
+  return <a className={cls} href={href} style={style} {...rest}>{children}</a>;
+}
+
+/* ---- 再利用UI: SectionHead ---- */
+function SectionHead({ eyebrow, title, desc, maxW }) {
+  return (
+    <div className="section-head" style={maxW ? { maxWidth: maxW } : null}>
+      <div className="lead-line"></div>
+      <span className="eyebrow">{eyebrow}</span>
+      <h2>{title}</h2>
+      <p>{desc}</p>
+    </div>
+  );
+}
+
+/* ---- useReveal: スクロール出現アニメをフックとして共通化 ---- */
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    if (!("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("in")); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(e => io.observe(e));
+    return () => io.disconnect();
+  }, []);
+}
+
+/* ---- Header（モバイルメニュー開閉のstate管理）---- */
+function Header() {
+  const [open, setOpen] = useState(false);
+  const links = [["特徴","#features"],["利用シーン","#usecases"],["導入メリット","#benefits"],["料金","#pricing"],["FAQ","#faq"]];
+  return (
+    <header className="site">
+      <div className="wrap">
+        <nav className="nav">
+          <a className="brand" href="#top"><span className="logo">◎</span> Minutes<span style={{color:"hsl(var(--brand))"}}>AI</span></a>
+          <div className="nav-links">{links.map(([l,h]) => <a key={h} href={h}>{l}</a>)}</div>
+          <div className="nav-cta">
+            <a className="login" href="#">ログイン</a>
+            <Button variant="ghost" href="#pricing">資料請求</Button>
+            <Button variant="primary" href="#cta">無料で始める</Button>
+          </div>
+          <button className="burger" aria-label="メニュー" onClick={() => setOpen(o => !o)}>
+            <span></span><span></span><span></span>
+          </button>
+        </nav>
+      </div>
+      <div className={"mobile-menu" + (open ? " open" : "")}>
+        <div className="wrap">
+          {links.map(([l,h]) => <a key={h} href={h} onClick={() => setOpen(false)}>{l}</a>)}
+          <Button variant="primary" block href="#cta">無料で始める</Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ---- Hero ---- */
+function Hero() {
+  return (
+    <section className="hero">
+      <div className="wrap hero-grid">
+        <div className="reveal">
+          <span className="eyebrow">⚡ AI議事録 SaaS</span>
+          <h1>会議の音声を、<br/><span className="hl">そのまま意思決定</span>に変える。</h1>
+          <p className="sub">Minutes AIは、商談・社内会議・1on1の音声を高精度で文字起こし。話者を自動で識別し、要約・決定事項・ToDoまでをAIが数十秒で生成します。「議事録を書く時間」を、ゼロに。</p>
+          <div className="hero-cta">
+            <Button variant="primary" href="#cta">14日間 無料で試す →</Button>
+            <Button variant="ghost" href="#features">▶ 30秒でわかる紹介</Button>
+          </div>
+          <div className="trust">
+            <span className="stars">★★★★★</span>
+            <span><b>4.8</b>/5.0 — 導入企業の継続率 <b>98%</b></span>
+            <span>・クレジットカード不要</span>
+          </div>
+          <div className="logos">
+            <span style={{fontSize:".8rem", color:"hsl(var(--ink-soft))"}}>導入企業:</span>
+            <span className="l">◢ NorthGate</span><span className="l">❖ 蒼天物産</span>
+            <span className="l">▲ Yamato Tech</span><span className="l">⬡ Lumière</span>
+          </div>
+        </div>
+        <div className="hero-visual reveal" style={{transitionDelay:".1s"}}>
+          <HeroWindow/>
+          <div className="float-stat"><span className="big">-92%</span><span className="lbl">議事録<br/>作成時間</span></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroWindow() {
+  const [sec, setSec] = useState(24*60+18);
+  useEffect(() => { const t = setInterval(() => setSec(s => s+1), 1000); return () => clearInterval(t); }, []);
+  const mm = String(Math.floor(sec/60)).padStart(2,"0"), ss = String(sec%60).padStart(2,"0");
+  return (
+    <div className="app-window">
+      <div className="aw-bar">
+        <span className="dot" style={{background:"#f6685e"}}></span>
+        <span className="dot" style={{background:"#fdbc40"}}></span>
+        <span className="dot" style={{background:"#34c749"}}></span>
+        <span className="tab">週次プロジェクト定例 — 2026/06/11</span>
+        <span className="rec"><span className="pulse"></span>REC {mm}:{ss}</span>
+      </div>
+      <div className="aw-body">
+        <div className="speak">
+          <span className="av" style={{background:"hsl(var(--brand-deep))"}}>田</span>
+          <div><div className="who">田中（PM）・00:12</div><div className="txt">次のリリースは予定通り6月28日で進めましょう。残課題はAPIの認可周りですね。</div></div>
+        </div>
+        <div className="speak">
+          <span className="av" style={{background:"hsl(var(--accent))"}}>佐</span>
+          <div><div className="who">佐藤（Eng）・00:31</div><div className="txt">認可は今週中に検証を終えます。負荷試験の担当だけ決めたいです。</div></div>
+        </div>
+        <div className="summary-chip">
+          <div className="h">✦ AI要約 ＆ 決定事項</div>
+          <div className="todo"><span className="box">✓</span> リリース日を6月28日に確定</div>
+          <div className="todo"><span className="box"></span> 認可検証 — 佐藤（今週中）</div>
+          <div className="todo"><span className="box"></span> 負荷試験の担当者を次回までに決定</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Metrics ---- */
+function Metrics() {
+  const data = [["99.2","%","日本語の文字起こし精度"],["40","秒","60分会議の平均要約時間"],["12,000","社","国内の導入企業数"],["29","言語","対応する文字起こし言語"]];
+  return (
+    <section className="wrap reveal" style={{marginTop:"-8px"}}>
+      <div className="metrics">
+        {data.map(([n,u,c],i) => <div className="m" key={i}><div className="num">{n}<small>{u}</small></div><div className="cap">{c}</div></div>)}
+      </div>
+    </section>
+  );
+}
+
+/* ---- Features ---- */
+function Feature({ span, icon, title, children }) {
+  return (
+    <div className={"feat " + span}>
+      <div className="ficon">{icon}</div>
+      <h3>{title}</h3>
+      <p>{children}</p>
+    </div>
+  );
+}
+function Features() {
+  return (
+    <section className="section" id="features">
+      <div className="wrap">
+        <div className="reveal"><SectionHead eyebrow="Features" title={'「録る・書く・まとめる」を、AIが全部やる。'} desc="会議に集中している間に、Minutes AIが裏側で議事録を完成させます。あなたが手を動かすのは、確認とワンクリックの共有だけ。"/></div>
+        <div className="bento reveal">
+          <Feature span="span3" icon="🎙️" title="高精度リアルタイム文字起こし">専門用語・社名・製品名を学習する辞書機能を搭載。日本語の文字起こし精度99.2%で、訛りや早口の発言も正確に記録します。</Feature>
+          <Feature span="span3" icon="👥" title="話者の自動識別">誰が何を発言したかを自動でラベリング。複数人が同時に話す会議でも、発言者ごとに整理された議事録を生成します。</Feature>
+          <Feature span="span2" icon="✦" title="ワンクリック要約">長い会議も、決定事項・論点・結論の3軸で自動要約。読むべき要点が一目でわかります。</Feature>
+          <Feature span="span2" icon="✅" title="ToDoの自動抽出">「誰が・いつまでに・何を」をAIが抽出し、担当者と期限つきのタスクとして出力します。</Feature>
+          <Feature span="span2" icon="🔗" title="豊富な連携">Slack・Teams・Notion・Salesforceへ自動連携。要約とタスクを使い慣れたツールへ即共有。</Feature>
+          <div className="feat span6">
+            <div>
+              <div className="ficon">🌐</div>
+              <h3>グローバル会議も、言語の壁なく。</h3>
+              <p>29言語に対応し、英語の会議を日本語で要約することも可能。海外拠点やオフショア開発との会議も、言語を意識せず記録・共有できます。</p>
+              <div className="lang-grid">
+                {["日本語","English","中文","한국어","Français","Deutsch","+23言語"].map(l => <span key={l}>{l}</span>)}
+              </div>
+            </div>
+            <div style={{borderRadius:"var(--radius-md)", background:"hsl(0 0% 100% / .08)", border:"1px solid hsl(0 0% 100% / .15)", padding:"22px"}}>
+              <div style={{fontFamily:"var(--font-display)", fontSize:".8rem", opacity:.8, letterSpacing:".08em"}}>LIVE TRANSLATION</div>
+              <div style={{marginTop:"12px", fontSize:".92rem", opacity:.7}}>EN — "Let's finalize the budget by Friday."</div>
+              <div style={{marginTop:"6px", fontSize:"1rem", fontWeight:700}}>JA — 予算を金曜までに確定させましょう。</div>
+              <div style={{marginTop:"16px", height:"1px", background:"hsl(0 0% 100% / .15)"}}></div>
+              <div style={{marginTop:"12px", fontSize:".92rem", opacity:.7}}>EN — "I'll share the deck after the call."</div>
+              <div style={{marginTop:"6px", fontSize:"1rem", fontWeight:700}}>JA — 通話後に資料を共有します。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Use cases ---- */
+function UseCases() {
+  const cases = [
+    {emoji:"🤝", glow:"hsl(var(--brand) / .25)", base:"hsl(var(--brand) / .07)", title:"営業・商談", desc:"商談内容を自動でCRMに記録。ヒアリング漏れを防ぎ、上司への報告やナレッジ共有を即座に。", li:["議事録をSalesforceへ自動連携","顧客の課題・要望を構造化","次回アクションを自動提案"]},
+    {emoji:"🧩", glow:"hsl(var(--accent) / .25)", base:"hsl(var(--accent) / .07)", title:"社内定例・プロジェクト", desc:"定例会の決定事項とタスクを自動で整理。参加できなかったメンバーも要約だけで状況を把握できます。", li:["決定事項とToDoを自動抽出","過去の会議を横断検索","欠席者へ要約を自動配信"]},
+    {emoji:"💬", glow:"hsl(var(--brand-deep) / .3)", base:"hsl(var(--brand-deep) / .08)", title:"1on1・採用面接", desc:"対話に集中しながら記録は自動化。評価コメントや振り返りメモの作成工数を大きく削減します。", li:["面接評価の下書きを自動生成","1on1の振り返りを蓄積","センシティブ情報はマスキング"]},
+  ];
+  return (
+    <section className="section" id="usecases" style={{background:"linear-gradient(180deg, hsl(var(--muted) / .5), transparent)"}}>
+      <div className="wrap">
+        <div className="reveal"><SectionHead eyebrow="Use Cases" title={'あらゆる「話す仕事」を、資産に変える。'} desc="部門や職種を問わず、会議のあるところすべてでMinutes AIは力を発揮します。"/></div>
+        <div className="cases reveal">
+          {cases.map((c,i) => (
+            <div className="case" key={i}>
+              <div className="top">
+                <div className="glow" style={{background:`radial-gradient(120px 120px at 80% 20%, ${c.glow}, transparent), ${c.base}`}}></div>
+                <span className="emoji" style={{position:"relative"}}>{c.emoji}</span>
+              </div>
+              <div className="body">
+                <h3>{c.title}</h3>
+                <p>{c.desc}</p>
+                <ul>{c.li.map((x,j) => <li key={j}>{x}</li>)}</ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Benefits ---- */
+function Benefits() {
+  const rows = [
+    ["⏱️","議事録作成を月20時間削減","1人あたり月20時間以上かかっていた記録作業を自動化。本来注力すべき業務に時間を取り戻します。"],
+    ["🔍","決定事項が埋もれない","全社の会議を横断検索。「あの件、どうなった?」を数秒で解決し、認識のズレをなくします。"],
+    ["🔒","エンタープライズ水準のセキュリティ","ISO27001取得・国内データセンター・通信暗号化・SSO対応。情報システム部門も安心して導入できます。"],
+  ];
+  const bars = [["議事録作成時間","-92%","92%","hsl(var(--accent))"],["情報共有の遅延","-78%","78%","hsl(var(--brand))"],["会議の振り返り工数","-64%","64%","hsl(46 95% 60%)"]];
+  return (
+    <section className="section" id="benefits">
+      <div className="wrap benefit-wrap">
+        <div className="reveal">
+          <div className="lead-line"></div>
+          <span className="eyebrow">Why Minutes AI</span>
+          <h2 style={{fontSize:"clamp(1.7rem,1.1rem+2.4vw,2.7rem)", fontWeight:900, margin:"18px 0 14px"}}>導入すると、組織の時間が増える。</h2>
+          <p style={{color:"hsl(var(--ink-soft))", marginBottom:"26px"}}>議事録という見えにくいコストを定量化し、削減する。Minutes AIは「会議の生産性」を経営指標に変えます。</p>
+          <div className="benefit-list">
+            {rows.map(([i,h,p],k) => <div className="brow" key={k}><div className="bi">{i}</div><div><h4>{h}</h4><p>{p}</p></div></div>)}
+          </div>
+        </div>
+        <div className="roi-card reveal" style={{transitionDelay:".1s"}}>
+          <div className="rcap">月間 ROI シミュレーション</div>
+          <div className="rbig">¥1,840,000</div>
+          <div className="rsub">削減できる人件費の目安（50名・1人月20時間・時給2,300円換算）</div>
+          {bars.map(([lbl,val,w,col],i) => (
+            <React.Fragment key={i}>
+              <div className="roi-bar"><i style={{width:w, background:col}}></i></div>
+              <div className="roi-line" style={i===bars.length-1?{marginBottom:0}:null}><span>{lbl}</span><span>{val}</span></div>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Pricing（月額/年額トグルのstate）---- */
+function Pricing() {
+  const [yearly, setYearly] = useState(false);
+  const plans = [
+    {name:"Starter", desc:"個人・小規模チームで議事録を試したい方に。", m:980, y:9800, unit:"/ ユーザー・月",
+      feats:[[true,"月10時間までの文字起こし"],[true,"AI要約・ToDo抽出"],[true,"話者の自動識別"],[true,"Slack / Notion 連携"],[false,"横断検索・分析"],[false,"SSO / 監査ログ"]],
+      cta:["無料で始める","ghost"]},
+    {name:"Business", desc:"部門での本格運用に。ほとんどのチームに最適。", m:2480, y:24800, unit:"/ ユーザー・月", featured:true,
+      feats:[[true,<span><b>文字起こし無制限</b></span>],[true,"Starterの全機能"],[true,"全会議の横断検索・分析"],[true,"Salesforce / Teams 連携"],[true,"29言語 翻訳要約"],[true,"優先サポート"]],
+      cta:["14日間 無料で試す","primary"]},
+    {name:"Enterprise", desc:"全社導入・高度なガバナンスが必要な組織に。", custom:true,
+      feats:[[true,"Businessの全機能"],[true,"SSO / SCIM / 監査ログ"],[true,"専用辞書・カスタム要約"],[true,"国内DC・データ保管要件対応"],[true,"SLA保証・専任CS"],[true,"オンプレ連携相談可"]],
+      cta:["相談する","dark"]},
+  ];
+  const yen = n => "¥" + n.toLocaleString();
+  return (
+    <section className="section" id="pricing" style={{background:"linear-gradient(180deg, hsl(var(--muted) / .5), transparent)"}}>
+      <div className="wrap">
+        <div className="reveal"><SectionHead eyebrow="Pricing" maxW="760px" title="チームの規模に合わせた、明朗な料金。" desc="すべてのプランが14日間無料。年額契約なら2ヶ月分お得になります。"/></div>
+        <div className="toggle reveal">
+          <span style={!yearly?{color:"hsl(var(--ink))", fontWeight:700}:null}>月額</span>
+          <button className={"switch" + (yearly?" year":"")} onClick={() => setYearly(y=>!y)} aria-label="課金周期"><i></i></button>
+          <span style={yearly?{color:"hsl(var(--ink))", fontWeight:700}:null}>年額</span>
+          <span className="save-badge">2ヶ月分お得</span>
+        </div>
+        <div className="plans reveal">
+          {plans.map((p,i) => (
+            <div className={"plan" + (p.featured?" featured":"")} key={i}>
+              {p.featured && <span className="ribbon">★ 一番人気</span>}
+              <div className="pname">{p.name}</div>
+              <div className="pdesc">{p.desc}</div>
+              {p.custom ? (
+                <>
+                  <div className="price"><span className="amt" style={{fontSize:"2rem"}}>お問い合わせ</span></div>
+                  <div className="pnote">専任の導入支援担当がつきます</div>
+                </>
+              ) : (
+                <>
+                  <div className="price"><span className="cur">¥</span><span className="amt">{(yearly? Math.round(p.y/12) : p.m).toLocaleString()}</span><span className="per">{p.unit}</span></div>
+                  <div className="pnote">{yearly ? `年額契約 ${yen(p.y)}/年（2ヶ月分お得）` : `年額契約なら ${yen(p.y)}/年`}</div>
+                </>
+              )}
+              <ul>{p.feats.map(([on,t],j) => <li className={on?"":"off"} key={j}><span className="ck">{on?"✓":"×"}</span>{t}</li>)}</ul>
+              <Button variant={p.cta[1]} block href="#cta">{p.cta[0]}</Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- FAQ（アコーディオン開閉）---- */
+function FAQItem({ q, a, open, onToggle }) {
+  const ref = useRef(null);
+  const maxH = open && ref.current ? ref.current.scrollHeight + "px" : "0px";
+  return (
+    <div className={"qa" + (open?" open":"")}>
+      <button onClick={onToggle} aria-expanded={open}>
+        <span className="qmark">＋</span><span className="qtext">{q}</span>
+      </button>
+      <div className="ans" style={{maxHeight:maxH}}>
+        <div className="ans-inner" ref={ref}>{a}</div>
+      </div>
+    </div>
+  );
+}
+function FAQ() {
+  const items = [
+    ["どのくらいの精度で文字起こしできますか?","日本語の標準的な会議音声で99.2%の精度を実現しています。業界特有の専門用語や社名・製品名は、辞書機能に登録することでさらに精度が向上します。マイク環境が良好な場合、ほぼ修正不要のレベルで議事録が生成されます。"],
+    ["ZoomやTeamsの会議でも使えますか?","はい。Zoom・Microsoft Teams・Google Meetに対応しており、専用ボットが会議に参加して自動で録音・文字起こしを行います。対面会議の場合も、スマホアプリやブラウザから直接録音できます。"],
+    ["セキュリティ面が心配です。データはどう扱われますか?","通信・保管データはすべて暗号化し、国内のデータセンターで管理しています。ISO27001を取得済みで、お客様の音声データがAIモデルの学習に二次利用されることはありません。Enterpriseプランではデータ保管期間の指定やマスキングにも対応します。"],
+    ["無料トライアルに条件はありますか?","クレジットカード登録なしで、14日間すべての機能をお試しいただけます。トライアル終了後に自動課金されることはありません。継続される場合のみ、管理画面からプランをお選びください。"],
+    ["既存のツールと連携できますか?","Slack・Microsoft Teams・Notion・Salesforce・Google Workspaceなど主要なツールと標準連携しています。要約やToDoを自動投稿したり、議事録を指定のフォルダへ保存したりできます。API・Webhookも提供しているため、独自システムとの連携も可能です。"],
+    ["解約はいつでもできますか?","はい、いつでも管理画面から解約いただけます。月額プランは当月末まで、年額プランは契約期間満了までご利用いただけます。最低利用期間の縛りはありません。解約後もエクスポート機能で議事録データを保全できます。"],
+  ];
+  const [openIdx, setOpenIdx] = useState(0);
+  return (
+    <section className="section" id="faq">
+      <div className="wrap faq-grid">
+        <div className="reveal">
+          <div className="lead-line"></div>
+          <span className="eyebrow">FAQ</span>
+          <h2 style={{fontSize:"clamp(1.7rem,1.1rem+2.4vw,2.6rem)", fontWeight:900, margin:"18px 0 14px"}}>よくあるご質問</h2>
+          <p style={{color:"hsl(var(--ink-soft))"}}>ここにない疑問は、いつでもお気軽にお問い合わせください。導入相談は無料です。</p>
+          <Button variant="ghost" style={{marginTop:"20px"}} href="#cta">サポートに相談する</Button>
+        </div>
+        <div className="faq-list reveal">
+          {items.map(([q,a],i) => <FAQItem key={i} q={q} a={a} open={openIdx===i} onToggle={() => setOpenIdx(openIdx===i?-1:i)} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Final CTA ---- */
+function FinalCTA() {
+  return (
+    <section className="wrap reveal" id="cta" style={{paddingBottom:"10px"}}>
+      <div className="final">
+        <h2>その会議、もう「書かなくていい」。</h2>
+        <p>Minutes AIなら、今日の午後の会議から議事録が自動で完成します。14日間の無料トライアルで、チームに戻ってくる時間を体感してください。</p>
+        <div className="fcta">
+          <Button variant="primary" href="#">14日間 無料で始める →</Button>
+          <a className="btn btn-ghost" style={{background:"hsl(0 0% 100% / .12)", color:"#fff", borderColor:"hsl(0 0% 100% / .3)"}} href="#">導入相談を予約する</a>
+        </div>
+        <div className="fnote">✓ クレジットカード不要　✓ 5分でセットアップ完了　✓ いつでも解約可能</div>
+      </div>
+    </section>
+  );
+}
+
+/* ---- Footer ---- */
+function Footer() {
+  const cols = [
+    ["製品",[["機能一覧","#features"],["料金プラン","#pricing"],["利用シーン","#usecases"],["アップデート情報","#"]]],
+    ["会社情報",[["運営会社","#"],["採用情報","#"],["ニュース","#"],["お問い合わせ","#"]]],
+    ["サポート",[["よくある質問","#faq"],["ヘルプセンター","#"],["導入事例","#"],["セキュリティ","#"]]],
+  ];
+  return (
+    <footer className="site">
+      <div className="wrap">
+        <div className="foot-grid">
+          <div>
+            <a className="brand" href="#top" style={{fontSize:"1.2rem"}}><span className="logo">◎</span> Minutes<span style={{color:"hsl(var(--brand))"}}>AI</span></a>
+            <p style={{color:"hsl(var(--ink-soft))", fontSize:".9rem", marginTop:"14px", maxWidth:"300px"}}>会議を、記録から意思決定へ。話すだけで議事録が完成するAIプラットフォーム。</p>
+          </div>
+          {cols.map(([h,links],i) => (
+            <div key={i}><h5>{h}</h5>{links.map(([l,href],j) => <a key={j} href={href}>{l}</a>)}</div>
+          ))}
+        </div>
+        <div className="foot-bottom">
+          <span>© 2026 Minutes AI, Inc. All rights reserved.</span>
+          <span style={{display:"flex", gap:"18px"}}><a href="#">利用規約</a><a href="#">プライバシーポリシー</a><a href="#">特定商取引法</a></span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ---- App ---- */
+function App() {
+  useReveal();
+  return (
+    <>
+      <Header/>
+      <main id="top">
+        <Hero/>
+        <Metrics/>
+        <Features/>
+        <UseCases/>
+        <Benefits/>
+        <Pricing/>
+        <FAQ/>
+        <FinalCTA/>
+      </main>
+      <Footer/>
+    </>
+  );
+}
+
+/* ---- マウント: 成功時のみ静的フォールバックを隠す ---- */
+try {
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(<App/>);
+  const fb = document.getElementById("fallback");
+  if (fb) fb.style.display = "none";
+  document.body.classList.remove("nojs");
+} catch (e) {
+  // Reactのマウントに失敗した場合は静的フォールバックをそのまま表示
+  console.warn("React mount failed, using static fallback:", e);
+}
+</script>
+</body>
+</html>

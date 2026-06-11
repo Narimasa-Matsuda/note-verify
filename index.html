@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>note 記事 検証ページ</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --ink: #1c2733;
+      --muted: #5b6877;
+      --line: #e3e7ec;
+      --accent: #2e70c6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    .lead { color: var(--muted); margin: 0 0 32px; font-size: 0.95rem; }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    .item a {
+      display: flex; align-items: baseline; gap: 12px;
+      padding: 16px 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s, transform .15s;
+    }
+    .item a:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .item .name { font-weight: 700; }
+    .item .tag { font-size: 0.72rem; font-weight: 700; color: var(--accent); background: #eaf2fb; border: 1px solid #d6e4f5; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+    .item .desc { color: var(--muted); font-size: 0.88rem; }
+    .group { margin: 36px 0 14px; }
+    .group h2 { font-size: 1.05rem; margin: 0 0 2px; }
+    .group p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .empty { color: var(--muted); font-size: 0.9rem; }
+    .hint {
+      margin-top: 40px; padding: 16px 18px;
+      background: #eef4fb; border: 1px solid #d6e4f5; border-radius: 12px;
+      font-size: 0.85rem; color: #29486b;
+    }
+    code { background: #e9edf2; padding: 1px 6px; border-radius: 5px; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>note 記事 検証ページ</h1>
+    <p class="lead">記事に載せる HTML / CSS / JS の動作をブラウザで確認するためのインデックスです。</p>
+
+    <ul class="list" id="list"></ul>
+
+    <div class="hint">
+      <strong>使い方</strong><br />
+      1. 新しい検証は <code>demos/</code> に HTML を1ファイル追加。<br />
+      2. 下の <code>DEMOS</code> 配列に1行足すとこの一覧に出ます。<br />
+      3. 直接ファイルを開いても動きますが、JS の一部はローカルサーバ推奨：<br />
+      　<code>cd ~/Projects/note-verify && python3 -m http.server</code> → <code>http://localhost:8000/</code>
+    </div>
+  </div>
+
+  <script>
+    // 検証ページを増やすときは、対象グループの items に1行足すだけ。
+    // 今回は「スキル比較」企画：同一プロンプトを各スキルで生成して見比べる。全3ページ予定。
+    const GROUPS = [
+      {
+        title: "ページ① Minutes AI LP（AI議事録SaaS）",
+        note: "同一プロンプトを各スキルで生成。Skillなしを基準に比較する。",
+        items: [
+          { file: "demos/00-baseline.html",              tag: "Skillなし",        name: "ベースライン", desc: "Claude単体の素の実力" },
+          { file: "demos/01-frontend-design.html",       tag: "frontend-design",  name: "本命：デザイン特化", desc: "AI slop回避・大胆な美学" },
+          { file: "demos/02-web-artifacts-builder.html", tag: "web-artifacts",    name: "実装寄り：コンポーネント志向", desc: "React/トークン設計" },
+          { file: "demos/03-theme-factory.html",         tag: "theme-factory",    name: "テーマ寄り：配色・フォント", desc: "テーマ「Signal Blue」を一貫適用" },
+          { file: "demos/04-brand-guidelines.html",      tag: "brand-guidelines", name: "ブランド寄り：制約下の完成度", desc: "ブランド規定を定義し厳守" },
+          { file: "demos/05-canvas-design.html",         tag: "canvas-design",    name: "番外：ビジュアル表現力", desc: "ポスター作法をLPに転用" },
+          { file: "demos/06-algorithmic-art.html",       tag: "algorithmic-art",  name: "番外：ジェネラティブ", desc: "生成ビジュアルを背景に活用" },
+        ],
+      },
+      {
+        title: "ページ② NexaWorks コーポレートサイト（BtoB企業トップ）",
+        note: "写真ヒーローありの王道コーポレートサイト。同一プロンプトを各スキルで生成。",
+        items: [
+          { file: "demos/p2-00-baseline.html",              tag: "Skillなし",        name: "ベースライン", desc: "Claude単体の素の実力" },
+          { file: "demos/p2-01-frontend-design.html",       tag: "frontend-design",  name: "本命：デザイン特化", desc: "明朝×銅・座標フレームで差別化" },
+          { file: "demos/p2-02-web-artifacts-builder.html", tag: "web-artifacts",    name: "実装寄り：コンポーネント志向", desc: "React/トークン設計" },
+          { file: "demos/p2-03-theme-factory.html",         tag: "theme-factory",    name: "テーマ寄り：配色・フォント", desc: "テーマ「Deep Ocean Tech」を一貫適用" },
+          { file: "demos/p2-04-brand-guidelines.html",      tag: "brand-guidelines", name: "ブランド寄り：制約下の完成度", desc: "ブランド規定を定義し厳守" },
+          { file: "demos/p2-05-canvas-design.html",         tag: "canvas-design",    name: "番外：ビジュアル表現力", desc: "ポスター作法をサイトに転用" },
+          { file: "demos/p2-06-algorithmic-art.html",       tag: "algorithmic-art",  name: "番外：ジェネラティブ", desc: "flow-field生成ビジュアルを補助に" },
+        ],
+      },
+      {
+        title: "ページ③ LumiWhite 商品LP（プレミアム歯磨き粉・広告型）",
+        note: "外部画像なし・全ビジュアルをCSS/SVGで表現。薬機法/景表法に配慮。同一プロンプトを各スキルで生成。",
+        items: [
+          { file: "demos/p3-00-baseline.html",              tag: "Skillなし",        name: "ベースライン", desc: "Claude単体の素の実力" },
+          { file: "demos/p3-01-frontend-design.html",       tag: "frontend-design",  name: "本命：デザイン特化", desc: "Luminous Water・抑制的な高級感" },
+          { file: "demos/p3-02-web-artifacts-builder.html", tag: "web-artifacts",    name: "実装寄り：コンポーネント志向", desc: "React/トークン・固定購入バー" },
+          { file: "demos/p3-03-theme-factory.html",         tag: "theme-factory",    name: "テーマ寄り：配色・フォント", desc: "テーマ「LumiWhite Frost」を一貫適用" },
+          { file: "demos/p3-04-brand-guidelines.html",      tag: "brand-guidelines", name: "ブランド寄り：制約下の完成度", desc: "「ひとしずくの光」ブランド規定を厳守" },
+          { file: "demos/p3-05-canvas-design.html",         tag: "canvas-design",    name: "番外：ビジュアル表現力", desc: "Luminous Clinic・大胆タイポ" },
+          { file: "demos/p3-06-algorithmic-art.html",       tag: "algorithmic-art",  name: "番外：ジェネラティブ", desc: "泡・光の生成ビジュアルをFVに" },
+        ],
+      },
+    ];
+
+    const OTHER = [
+      { file: "demos/sample.html", name: "サンプル: ボタンとカウンター", desc: "HTML+CSS+JS が動くことの最小確認" },
+    ];
+
+    const list = document.getElementById("list");
+    const itemHTML = d =>
+      `<li class="item"><a href="${d.file}">` +
+      (d.tag ? `<span class="tag">${d.tag}</span>` : "") +
+      `<span class="name">${d.name}</span>` +
+      `<span class="desc">${d.desc}</span></a></li>`;
+
+    let html = "";
+    for (const g of GROUPS) {
+      html += `<div class="group"><h2>${g.title}</h2><p>${g.note}</p></div>`;
+      html += g.items.map(itemHTML).join("");
+    }
+    if (OTHER.length) {
+      html += `<div class="group"><h2>その他</h2><p>動作確認用</p></div>`;
+      html += OTHER.map(itemHTML).join("");
+    }
+    list.innerHTML = html || '<li class="empty">まだ検証ページがありません。demos/ に追加してください。</li>';
+  </script>
+</body>
+</html>

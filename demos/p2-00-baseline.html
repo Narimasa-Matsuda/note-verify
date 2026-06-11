@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexaWorks株式会社｜業務システム開発・DX支援・クラウド導入支援</title>
+<meta name="description" content="NexaWorks株式会社は、中堅・大企業向けに業務システム開発、DX支援、クラウド導入支援を提供します。誠実なパートナーとして、お客様の事業変革を伴走支援します。">
+<style>
+  :root{
+    --navy:#0f2a4a;
+    --navy-deep:#0a1f38;
+    --blue:#1e5fb4;
+    --blue-light:#2f7de0;
+    --accent:#0bb8a6;
+    --text:#1c2733;
+    --text-sub:#5a6b7b;
+    --line:#e3e8ee;
+    --bg:#ffffff;
+    --bg-soft:#f5f8fb;
+    --bg-soft2:#eef3f8;
+    --radius:10px;
+    --shadow:0 8px 30px rgba(15,42,74,.08);
+    --shadow-lg:0 18px 50px rgba(15,42,74,.14);
+    --maxw:1160px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:var(--font);
+    color:var(--text);
+    line-height:1.8;
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    font-size:16px;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;text-decoration:none;}
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:.5em;
+    padding:14px 28px;border-radius:6px;font-weight:700;font-size:.95rem;
+    transition:.2s ease;cursor:pointer;border:none;line-height:1.4;
+  }
+  .btn-primary{background:var(--blue);color:#fff;box-shadow:0 6px 18px rgba(30,95,180,.32);}
+  .btn-primary:hover{background:var(--blue-light);transform:translateY(-2px);}
+  .btn-ghost{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7);}
+  .btn-ghost:hover{background:rgba(255,255,255,.12);}
+  .btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+  .btn-outline:hover{border-color:var(--blue);color:var(--blue);}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:100;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:saturate(180%) blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:74px;}
+  .logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.25rem;color:var(--navy);letter-spacing:.02em;}
+  .logo .mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--blue),var(--accent));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.05rem;font-weight:800;
+  }
+  .logo small{display:block;font-size:.62rem;font-weight:600;color:var(--text-sub);letter-spacing:.18em;margin-top:-3px;}
+  .nav-links{display:flex;align-items:center;gap:30px;list-style:none;margin:0;padding:0;}
+  .nav-links a{font-size:.93rem;font-weight:600;color:var(--text);transition:.2s;}
+  .nav-links a:hover{color:var(--blue);}
+  .nav-cta{display:flex;align-items:center;gap:14px;}
+  .nav-cta .tel{font-weight:700;color:var(--navy);font-size:.92rem;line-height:1.2;}
+  .nav-cta .tel small{display:block;font-size:.62rem;color:var(--text-sub);font-weight:600;}
+  .nav-cta .btn{padding:11px 22px;font-size:.88rem;}
+  .hamburger{display:none;background:none;border:none;cursor:pointer;width:42px;height:42px;flex-direction:column;justify-content:center;gap:6px;}
+  .hamburger span{display:block;height:2px;background:var(--navy);border-radius:2px;transition:.3s;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;color:#fff;overflow:hidden;
+    background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy) 45%,var(--blue) 130%);
+  }
+  .hero-bg{
+    position:absolute;inset:0;z-index:0;
+    background-image:url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80");
+    background-size:cover;background-position:center;
+  }
+  .hero-overlay{
+    position:absolute;inset:0;z-index:1;
+    background:linear-gradient(100deg,rgba(10,31,56,.92) 0%,rgba(12,38,68,.78) 45%,rgba(15,42,74,.40) 100%);
+  }
+  .hero-inner{position:relative;z-index:2;padding:108px 0 112px;}
+  .hero-inner .container{max-width:var(--maxw);}
+  .hero-eyebrow{
+    display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.16em;
+    color:#a9d3ff;border-left:3px solid var(--accent);padding-left:12px;margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:clamp(2rem,4.4vw,3.4rem);font-weight:800;line-height:1.32;margin:0 0 24px;
+    letter-spacing:.01em;max-width:18em;text-shadow:0 2px 18px rgba(0,0,0,.25);
+  }
+  .hero h1 .hl{color:#7fe3d6;}
+  .hero p.lead{font-size:1.08rem;color:#dce6f2;max-width:34em;margin:0 0 38px;line-height:1.9;}
+  .hero-actions{display:flex;gap:16px;flex-wrap:wrap;}
+  .hero-stats{
+    position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.16);
+    margin-top:64px;padding-top:32px;display:flex;gap:48px;flex-wrap:wrap;
+  }
+  .hero-stats .stat .num{font-size:2.2rem;font-weight:800;color:#fff;line-height:1;}
+  .hero-stats .stat .num span{font-size:1rem;font-weight:700;color:#a9d3ff;margin-left:2px;}
+  .hero-stats .stat .lbl{font-size:.84rem;color:#c2d3e6;margin-top:6px;}
+
+  /* ---------- Logos bar ---------- */
+  .clients{background:var(--bg-soft);border-bottom:1px solid var(--line);}
+  .clients .container{padding-top:26px;padding-bottom:26px;}
+  .clients p{text-align:center;font-size:.8rem;color:var(--text-sub);letter-spacing:.08em;margin:0 0 14px;font-weight:600;}
+  .clients-row{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 36px;align-items:center;}
+  .clients-row span{
+    font-weight:800;color:#94a6b8;font-size:1.02rem;letter-spacing:.02em;opacity:.85;
+  }
+
+  /* ---------- Section base ---------- */
+  section.block{padding:96px 0;}
+  .sec-head{max-width:760px;margin:0 0 52px;}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+  .label{
+    display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.18em;
+    color:var(--blue);margin-bottom:14px;
+  }
+  .sec-head h2{font-size:clamp(1.6rem,3vw,2.25rem);font-weight:800;color:var(--navy);margin:0 0 18px;line-height:1.4;letter-spacing:.01em;}
+  .sec-head p{color:var(--text-sub);font-size:1.02rem;margin:0;}
+
+  /* ---------- Strengths ---------- */
+  .bg-soft{background:var(--bg-soft);}
+  .strengths{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+  .strength-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:36px 32px;box-shadow:var(--shadow);transition:.25s;
+  }
+  .strength-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:#d4e2f2;}
+  .strength-card .icon{
+    width:56px;height:56px;border-radius:12px;margin-bottom:22px;
+    background:linear-gradient(135deg,#e8f2ff,#dcefee);
+    display:flex;align-items:center;justify-content:center;color:var(--blue);
+  }
+  .strength-card .icon svg{width:28px;height:28px;}
+  .strength-card .no{font-size:.74rem;font-weight:800;color:var(--accent);letter-spacing:.14em;margin-bottom:8px;}
+  .strength-card h3{font-size:1.18rem;color:var(--navy);margin:0 0 12px;font-weight:800;}
+  .strength-card p{color:var(--text-sub);font-size:.93rem;margin:0;line-height:1.85;}
+
+  /* ---------- Services ---------- */
+  .services{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+  .service-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);transition:.25s;display:flex;flex-direction:column;
+  }
+  .service-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .service-thumb{
+    height:188px;position:relative;
+    background:linear-gradient(135deg,var(--navy),var(--blue));
+    background-size:cover;background-position:center;
+  }
+  .service-thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,42,74,.05),rgba(15,42,74,.35));}
+  .service-body{padding:26px 26px 30px;display:flex;flex-direction:column;flex:1;}
+  .service-body .cat{font-size:.74rem;font-weight:800;color:var(--blue);letter-spacing:.12em;margin-bottom:10px;}
+  .service-body h3{font-size:1.2rem;color:var(--navy);margin:0 0 12px;font-weight:800;line-height:1.5;}
+  .service-body p{color:var(--text-sub);font-size:.92rem;margin:0 0 18px;flex:1;}
+  .service-body .more{font-size:.88rem;font-weight:700;color:var(--blue);display:inline-flex;align-items:center;gap:6px;}
+  .service-body .more::after{content:"→";transition:.2s;}
+  .service-card:hover .more::after{transform:translateX(4px);}
+
+  /* ---------- Cases ---------- */
+  .cases{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+  .case-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);transition:.25s;
+  }
+  .case-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .case-thumb{height:200px;background-size:cover;background-position:center;background-color:var(--navy);position:relative;}
+  .case-thumb .tag{
+    position:absolute;left:16px;top:16px;background:rgba(255,255,255,.95);color:var(--blue);
+    font-size:.72rem;font-weight:800;padding:5px 12px;border-radius:20px;letter-spacing:.04em;
+  }
+  .case-body{padding:24px 24px 28px;}
+  .case-body .ind{font-size:.78rem;color:var(--text-sub);font-weight:600;margin-bottom:8px;}
+  .case-body h3{font-size:1.08rem;color:var(--navy);margin:0 0 12px;font-weight:800;line-height:1.55;}
+  .case-body p{color:var(--text-sub);font-size:.9rem;margin:0 0 16px;}
+  .case-metric{display:flex;gap:20px;border-top:1px solid var(--line);padding-top:14px;}
+  .case-metric .m .v{font-size:1.35rem;font-weight:800;color:var(--accent);line-height:1;}
+  .case-metric .m .k{font-size:.72rem;color:var(--text-sub);margin-top:4px;}
+
+  /* ---------- News ---------- */
+  .news-list{border-top:1px solid var(--line);}
+  .news-item{
+    display:flex;align-items:center;gap:24px;padding:22px 8px;border-bottom:1px solid var(--line);
+    transition:.2s;flex-wrap:wrap;
+  }
+  .news-item:hover{background:var(--bg-soft);padding-left:16px;}
+  .news-item time{font-size:.86rem;color:var(--text-sub);font-weight:600;min-width:98px;}
+  .news-item .cat{
+    font-size:.72rem;font-weight:800;color:var(--blue);border:1px solid #cfe0f3;
+    padding:3px 12px;border-radius:20px;min-width:96px;text-align:center;background:#f4f9ff;
+  }
+  .news-item .cat.ir{color:#b06a00;border-color:#f0dcb4;background:#fff7eb;}
+  .news-item .cat.pr{color:#0a8c7e;border-color:#bce8e1;background:#eefbf8;}
+  .news-item .ttl{flex:1;font-size:.98rem;font-weight:600;color:var(--text);min-width:200px;}
+  .news-item:hover .ttl{color:var(--blue);}
+  .news-foot{text-align:center;margin-top:38px;}
+
+  /* ---------- Company ---------- */
+  .company-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:start;}
+  .company-table{width:100%;border-collapse:collapse;font-size:.94rem;}
+  .company-table th,.company-table td{text-align:left;padding:16px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .company-table th{width:130px;color:var(--navy);font-weight:800;white-space:nowrap;}
+  .company-table td{color:var(--text-sub);}
+  .company-photo{
+    border-radius:var(--radius);overflow:hidden;min-height:420px;box-shadow:var(--shadow-lg);
+    background:linear-gradient(135deg,var(--navy),var(--blue));
+    background-image:url("https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80");
+    background-size:cover;background-position:center;position:relative;
+  }
+  .company-photo .badge{
+    position:absolute;left:24px;bottom:24px;background:rgba(15,42,74,.88);color:#fff;
+    padding:16px 22px;border-radius:8px;backdrop-filter:blur(4px);
+  }
+  .company-photo .badge strong{display:block;font-size:1.5rem;font-weight:800;line-height:1.1;}
+  .company-photo .badge span{font-size:.8rem;color:#bcd4ef;}
+
+  /* ---------- CTA ---------- */
+  .cta{
+    position:relative;color:#fff;overflow:hidden;
+    background:linear-gradient(120deg,var(--navy-deep),var(--blue));
+  }
+  .cta-bg{
+    position:absolute;inset:0;opacity:.22;
+    background-image:url("https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1920&q=80");
+    background-size:cover;background-position:center;
+  }
+  .cta .container{position:relative;z-index:2;padding:84px 24px;text-align:center;}
+  .cta h2{font-size:clamp(1.6rem,3vw,2.3rem);font-weight:800;margin:0 0 18px;line-height:1.45;}
+  .cta p{color:#d7e4f3;max-width:40em;margin:0 auto 34px;font-size:1.02rem;}
+  .cta-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .cta .btn-white{background:#fff;color:var(--navy);}
+  .cta .btn-white:hover{background:#eaf2fb;transform:translateY(-2px);}
+
+  /* ---------- Footer ---------- */
+  footer{background:var(--navy-deep);color:#aebfd2;padding:64px 0 28px;font-size:.9rem;}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px;}
+  .foot-brand .logo{color:#fff;margin-bottom:16px;}
+  .foot-brand p{font-size:.86rem;line-height:1.9;color:#93a6bd;margin:0 0 18px;max-width:30em;}
+  .foot-brand .addr{font-size:.82rem;color:#7e93ac;}
+  footer h4{color:#fff;font-size:.86rem;font-weight:800;letter-spacing:.06em;margin:0 0 18px;}
+  footer ul{list-style:none;margin:0;padding:0;}
+  footer ul li{margin-bottom:11px;}
+  footer ul a{color:#aebfd2;font-size:.86rem;transition:.2s;}
+  footer ul a:hover{color:#fff;}
+  .foot-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-size:.78rem;color:#7e93ac;}
+  .foot-bottom .links{display:flex;gap:22px;flex-wrap:wrap;}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:920px){
+    .strengths,.services,.cases{grid-template-columns:1fr 1fr;}
+    .company-grid{grid-template-columns:1fr;gap:40px;}
+    .company-photo{min-height:320px;}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:32px;}
+  }
+  @media(max-width:760px){
+    .nav-links,.nav-cta .tel{display:none;}
+    .nav-cta .btn{display:none;}
+    .hamburger{display:flex;}
+    .nav-links.open{
+      display:flex;flex-direction:column;position:absolute;top:74px;left:0;right:0;
+      background:#fff;border-bottom:1px solid var(--line);padding:18px 24px;gap:4px;
+      box-shadow:var(--shadow);
+    }
+    .nav-links.open li{width:100%;}
+    .nav-links.open a{display:block;padding:13px 4px;border-bottom:1px solid var(--bg-soft2);}
+    .hero-inner{padding:72px 0 76px;}
+    .hero-stats{gap:30px 36px;margin-top:44px;}
+    .hero-stats .stat .num{font-size:1.8rem;}
+    section.block{padding:64px 0;}
+    .strengths,.services,.cases{grid-template-columns:1fr;}
+    .sec-head{margin-bottom:38px;}
+    .news-item{gap:8px 16px;}
+    .news-item time{min-width:90px;}
+  }
+  @media(max-width:420px){
+    .hero-actions .btn,.cta-actions .btn{width:100%;justify-content:center;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header>
+  <div class="container nav">
+    <a href="#top" class="logo">
+      <span class="mark">N</span>
+      <span>NexaWorks<small>NEXAWORKS INC.</small></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#strengths">選ばれる理由</a></li>
+      <li><a href="#services">事業内容</a></li>
+      <li><a href="#cases">導入事例</a></li>
+      <li><a href="#news">ニュース</a></li>
+      <li><a href="#company">会社概要</a></li>
+    </ul>
+    <div class="nav-cta">
+      <div class="tel">03-5xxx-xxxx<small>受付 平日 9:00–18:00</small></div>
+      <a href="#contact" class="btn btn-primary">お問い合わせ</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-inner">
+    <div class="container">
+      <span class="hero-eyebrow">DX PARTNER FOR ENTERPRISE</span>
+      <h1>テクノロジーで、<span class="hl">事業の手ごたえ</span>を。<br>業務変革のパートナーへ。</h1>
+      <p class="lead">NexaWorks株式会社は、中堅・大企業の情報システム部門・経営企画部門に寄り添い、業務システム開発からDX推進、クラウド導入までを一気通貫でご支援します。技術と現場理解の両輪で、確かな成果を共に。</p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn btn-primary">無料で相談する</a>
+        <a href="#services" class="btn btn-ghost">事業内容を見る</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">320<span>社+</span></div><div class="lbl">導入支援実績</div></div>
+        <div class="stat"><div class="num">98<span>%</span></div><div class="lbl">プロジェクト継続率</div></div>
+        <div class="stat"><div class="num">17<span>年</span></div><div class="lbl">事業運営の実績</div></div>
+        <div class="stat"><div class="num">240<span>名</span></div><div class="lbl">エンジニア在籍</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Clients ===== -->
+<div class="clients">
+  <div class="container">
+    <p>製造・金融・流通・公共をはじめ、業界を代表する企業さまにご利用いただいています</p>
+    <div class="clients-row">
+      <span>SANWA Manufacturing</span><span>Keiyo Financial</span><span>MIDORI Retail</span>
+      <span>TOWA Logistics</span><span>Asahi Energy</span><span>Nippon Healthcare</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Strengths ===== -->
+<section class="block bg-soft" id="strengths">
+  <div class="container">
+    <div class="sec-head center">
+      <span class="label">OUR STRENGTHS</span>
+      <h2>「相談しやすさ」と「やり切る力」で選ばれています</h2>
+      <p>要件が固まる前のご相談から、稼働後の運用・内製化支援まで。お客様の事業フェーズに合わせて、最適な形で伴走します。</p>
+    </div>
+    <div class="strengths">
+      <div class="strength-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div class="no">STRENGTH 01</div>
+        <h3>業務理解に根ざした提案</h3>
+        <p>金融・製造・流通など業界別の知見を持つコンサルタントが、現場の業務フローを丁寧に読み解き、本質的な課題から逆算した実装計画をご提示します。</p>
+      </div>
+      <div class="strength-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17V9M9 17V5M14 17v-6M19 17v-9"/><path d="M3 21h18"/></svg></div>
+        <div class="no">STRENGTH 02</div>
+        <h3>上流から運用まで一気通貫</h3>
+        <p>構想策定・要件定義から開発・移行・運用保守まで、社内の専任チームが一貫して担当。ベンダー間の調整負担をなくし、責任の所在を明確にします。</p>
+      </div>
+      <div class="strength-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <div class="no">STRENGTH 03</div>
+        <h3>内製化を見据えた伴走支援</h3>
+        <p>「作って終わり」にしません。お客様社内へのナレッジ移転やドキュメント整備、人材育成まで支援し、自走できる体制づくりまで責任を持ちます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Services ===== -->
+<section class="block" id="services">
+  <div class="container">
+    <div class="sec-head">
+      <span class="label">SERVICES</span>
+      <h2>事業内容</h2>
+      <p>業務システム開発を軸に、DX推進とクラウド活用を組み合わせ、お客様の経営課題に合わせた最適なソリューションをご提供します。</p>
+    </div>
+    <div class="services">
+      <div class="service-card">
+        <div class="service-thumb" style="background-image:linear-gradient(135deg,rgba(15,42,74,.35),rgba(30,95,180,.35)),url('https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=900&q=80');"></div>
+        <div class="service-body">
+          <div class="cat">SYSTEM DEVELOPMENT</div>
+          <h3>業務システム開発</h3>
+          <p>基幹システムの刷新から業務アプリの新規構築まで、スクラッチ・パッケージの双方に対応。拡張性と保守性を重視した設計で、長く使える仕組みを構築します。</p>
+          <a href="#contact" class="more">詳しく見る</a>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-thumb" style="background-image:linear-gradient(135deg,rgba(15,42,74,.35),rgba(11,184,166,.30)),url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80');"></div>
+        <div class="service-body">
+          <div class="cat">DX CONSULTING</div>
+          <h3>DX推進支援</h3>
+          <p>業務の可視化・標準化からデータ活用、生成AIの業務適用まで。経営戦略と現場のギャップを埋め、成果につながるデジタル変革のロードマップを描きます。</p>
+          <a href="#contact" class="more">詳しく見る</a>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-thumb" style="background-image:linear-gradient(135deg,rgba(15,42,74,.35),rgba(30,95,180,.35)),url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80');"></div>
+        <div class="service-body">
+          <div class="cat">CLOUD MIGRATION</div>
+          <h3>クラウド導入支援</h3>
+          <p>AWS・Microsoft Azure・Google Cloud を活用したインフラ移行と最適化を支援。セキュリティ・コスト・運用性のバランスを踏まえた設計で、安全な移行を実現します。</p>
+          <a href="#contact" class="more">詳しく見る</a>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-thumb" style="background-image:linear-gradient(135deg,rgba(15,42,74,.35),rgba(30,95,180,.35)),url('https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80');"></div>
+        <div class="service-body">
+          <div class="cat">MANAGED SERVICE</div>
+          <h3>運用・保守／内製化支援</h3>
+          <p>稼働後の安定運用を支える保守サービスに加え、お客様社内でのシステム内製化を後押し。SREの考え方を取り入れ、継続的な改善サイクルを共に回します。</p>
+          <a href="#contact" class="more">詳しく見る</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Cases ===== -->
+<section class="block bg-soft" id="cases">
+  <div class="container">
+    <div class="sec-head">
+      <span class="label">CASE STUDIES</span>
+      <h2>導入事例</h2>
+      <p>業界・規模を問わず、多くの企業さまの変革をご支援してきました。代表的な事例の一部をご紹介します。</p>
+    </div>
+    <div class="cases">
+      <div class="case-card">
+        <div class="case-thumb" style="background-image:linear-gradient(180deg,rgba(15,42,74,.1),rgba(15,42,74,.35)),url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=900&q=80');"><span class="tag">製造業</span></div>
+        <div class="case-body">
+          <div class="ind">SANWA Manufacturing 株式会社</div>
+          <h3>老朽化した生産管理システムを刷新し、月次締めを大幅短縮</h3>
+          <p>分断されていた工場間データを統合。リアルタイムの在庫・進捗可視化により、属人的だった管理業務を標準化しました。</p>
+          <div class="case-metric">
+            <div class="m"><div class="v">-65%</div><div class="k">月次処理時間</div></div>
+            <div class="m"><div class="v">4ヶ月</div><div class="k">本稼働まで</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-thumb" style="background-image:linear-gradient(180deg,rgba(15,42,74,.1),rgba(15,42,74,.35)),url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=900&q=80');"><span class="tag">金融</span></div>
+        <div class="case-body">
+          <div class="ind">Keiyo Financial グループ</div>
+          <h3>オンプレ基幹をクラウド移行し、運用コストと障害を削減</h3>
+          <p>段階的なリフト＆シフト戦略で無停止移行を実現。監視・自動化を整備し、夜間運用の負荷を大きく軽減しました。</p>
+          <div class="case-metric">
+            <div class="m"><div class="v">-38%</div><div class="k">インフラ費用</div></div>
+            <div class="m"><div class="v">99.98%</div><div class="k">稼働率</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-thumb" style="background-image:linear-gradient(180deg,rgba(15,42,74,.1),rgba(15,42,74,.35)),url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=900&q=80');"><span class="tag">流通・小売</span></div>
+        <div class="case-body">
+          <div class="ind">MIDORI Retail 株式会社</div>
+          <h3>データ基盤を構築し、需要予測の精度向上と欠品削減を実現</h3>
+          <p>店舗・EC・物流のデータを横断的に統合。BIと需要予測モデルの導入で、発注業務の意思決定を高度化しました。</p>
+          <div class="case-metric">
+            <div class="m"><div class="v">-42%</div><div class="k">欠品率</div></div>
+            <div class="m"><div class="v">+12%</div><div class="k">在庫回転率</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="news-foot"><a href="#contact" class="btn btn-outline">すべての導入事例を見る</a></div>
+  </div>
+</section>
+
+<!-- ===== News ===== -->
+<section class="block" id="news">
+  <div class="container">
+    <div class="sec-head">
+      <span class="label">NEWS</span>
+      <h2>ニュース・お知らせ</h2>
+      <p>NexaWorksからの最新のお知らせ、プレスリリース、IR情報をご案内します。</p>
+    </div>
+    <div class="news-list">
+      <a class="news-item" href="#news">
+        <time>2026.05.28</time><span class="cat pr">プレス</span>
+        <span class="ttl">生成AIを活用した社内ナレッジ検索ソリューション「Nexa Assist」の提供を開始しました</span>
+      </a>
+      <a class="news-item" href="#news">
+        <time>2026.05.12</time><span class="cat">お知らせ</span>
+        <span class="ttl">大阪オフィスを開設し、西日本エリアのDX支援体制を強化いたします</span>
+      </a>
+      <a class="news-item" href="#news">
+        <time>2026.04.21</time><span class="cat ir">IR</span>
+        <span class="ttl">2026年3月期 通期決算を発表しました（売上高は前年比118%で着地）</span>
+      </a>
+      <a class="news-item" href="#news">
+        <time>2026.04.03</time><span class="cat">お知らせ</span>
+        <span class="ttl">情報セキュリティマネジメントシステム「ISO/IEC 27001」の認証を更新しました</span>
+      </a>
+      <a class="news-item" href="#news">
+        <time>2026.03.18</time><span class="cat pr">プレス</span>
+        <span class="ttl">AWSのアドバンストティアサービスパートナー認定を取得しました</span>
+      </a>
+    </div>
+    <div class="news-foot"><a href="#news" class="btn btn-outline">ニュース一覧へ</a></div>
+  </div>
+</section>
+
+<!-- ===== Company ===== -->
+<section class="block bg-soft" id="company">
+  <div class="container">
+    <div class="sec-head">
+      <span class="label">COMPANY</span>
+      <h2>会社概要</h2>
+      <p>誠実であること、先進的であること、そして安定して在り続けること。私たちはこの3つを大切に事業を営んでいます。</p>
+    </div>
+    <div class="company-grid">
+      <div>
+        <table class="company-table">
+          <tr><th>会社名</th><td>NexaWorks株式会社（NexaWorks Inc.）</td></tr>
+          <tr><th>設立</th><td>2009年4月1日</td></tr>
+          <tr><th>資本金</th><td>1億2,000万円</td></tr>
+          <tr><th>代表者</th><td>代表取締役社長　遠藤 健一郎</td></tr>
+          <tr><th>従業員数</th><td>328名（2026年3月末時点）</td></tr>
+          <tr><th>事業内容</th><td>業務システム開発／DX推進支援／クラウド導入・移行支援／運用保守・内製化支援</td></tr>
+          <tr><th>本社所在地</th><td>〒100-0005　東京都千代田区丸の内一丁目1-1　NexaWorksビル 12F</td></tr>
+          <tr><th>拠点</th><td>東京（本社）／大阪／名古屋／福岡</td></tr>
+          <tr><th>主要取引先</th><td>製造・金融・流通・公共分野の中堅・大企業（順不同）</td></tr>
+          <tr><th>認証・許認可</th><td>ISO/IEC 27001、プライバシーマーク、AWSアドバンストティアサービスパートナー</td></tr>
+        </table>
+      </div>
+      <div class="company-photo">
+        <div class="badge"><strong>17年</strong><span>確かな実績と、これからの挑戦。</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta" id="contact">
+  <div class="cta-bg"></div>
+  <div class="container">
+    <h2>その課題、まずは話してみませんか。</h2>
+    <p>「何から始めればよいか分からない」段階でのご相談を歓迎しています。専門のコンサルタントが、貴社の状況を丁寧に伺ったうえで、最適な進め方をご提案します。お見積り・ご相談は無料です。</p>
+    <div class="cta-actions">
+      <a href="#contact" class="btn btn-white">お問い合わせ・無料相談</a>
+      <a href="#services" class="btn btn-ghost">資料をダウンロード</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="logo"><span class="mark">N</span><span>NexaWorks<small>NEXAWORKS INC.</small></span></a>
+        <p>テクノロジーと現場理解の両輪で、お客様の事業変革に伴走するDXパートナー。業務システム開発・DX推進・クラウド導入を一気通貫でご支援します。</p>
+        <div class="addr">〒100-0005　東京都千代田区丸の内一丁目1-1　NexaWorksビル 12F</div>
+      </div>
+      <div>
+        <h4>事業内容</h4>
+        <ul>
+          <li><a href="#services">業務システム開発</a></li>
+          <li><a href="#services">DX推進支援</a></li>
+          <li><a href="#services">クラウド導入支援</a></li>
+          <li><a href="#services">運用・内製化支援</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>会社情報</h4>
+        <ul>
+          <li><a href="#company">会社概要</a></li>
+          <li><a href="#strengths">選ばれる理由</a></li>
+          <li><a href="#cases">導入事例</a></li>
+          <li><a href="#news">ニュース</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>お問い合わせ</h4>
+        <ul>
+          <li><a href="#contact">無料相談・お見積り</a></li>
+          <li><a href="#contact">資料ダウンロード</a></li>
+          <li><a href="#contact">採用情報</a></li>
+          <li><a href="#contact">03-5xxx-xxxx</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© 2026 NexaWorks Inc. All rights reserved.</div>
+      <div class="links">
+        <a href="#top">プライバシーポリシー</a>
+        <a href="#top">情報セキュリティ方針</a>
+        <a href="#top">サイトマップ</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('hamburger');
+    var nav = document.getElementById('navLinks');
+    btn.addEventListener('click', function(){
+      nav.classList.toggle('open');
+    });
+    nav.addEventListener('click', function(e){
+      if(e.target.tagName === 'A'){ nav.classList.remove('open'); }
+    });
+  })();
+</script>
+</body>
+</html>

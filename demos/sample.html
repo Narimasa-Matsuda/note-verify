@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>サンプル: ボタンとカウンター</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: #f6f7f9;
+      color: #1c2733;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e3e7ec;
+      border-radius: 16px;
+      padding: 32px 36px;
+      text-align: center;
+      box-shadow: 0 18px 40px -24px rgba(28, 39, 51, .35);
+    }
+    .count { font-size: 3rem; font-weight: 800; margin: 8px 0 20px; font-variant-numeric: tabular-nums; }
+    button {
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 10px;
+      border: none;
+      background: #2e70c6;
+      color: #fff;
+      cursor: pointer;
+      transition: filter .15s;
+    }
+    button:hover { filter: brightness(1.08); }
+    .back { margin-top: 22px; font-size: .85rem; }
+    .back a { color: #5b6877; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>クリック回数</div>
+    <div class="count" id="count">0</div>
+    <button id="btn">+1 する</button>
+    <div class="back"><a href="../index.html">← 一覧へ戻る</a></div>
+  </div>
+
+  <script>
+    let n = 0;
+    const el = document.getElementById("count");
+    document.getElementById("btn").addEventListener("click", () => {
+      n += 1;
+      el.textContent = n;
+    });
+  </script>
+</body>
+</html>
