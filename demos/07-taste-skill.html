@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minutes AI / 会議を、組織のナレッジに</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============ Design system ============
+   Theme lock: technical / calm / precise
+   Accent lock: Electric Blue (single accent, used identically)
+   Neutral base: Zinc
+   Corner-radius system: --r (14px) / --r-sm (10px) / --r-lg (22px)
+   Dials: VARIANCE 7 / MOTION 5 / DENSITY 5
+====================================================== */
+:root{
+  --bg:#fafafa;
+  --surface:#ffffff;
+  --surface-2:#f4f4f5;
+  --ink:#18181b;
+  --ink-soft:#3f3f46;
+  --muted:#71717a;
+  --line:#e4e4e7;
+  --accent:#1f5cff;        /* electric blue, sat <80% feel */
+  --accent-ink:#ffffff;    /* CTA text, AA on accent */
+  --accent-soft:rgba(31,92,255,.10);
+  --r:14px; --r-sm:10px; --r-lg:22px;
+  --maxw:1180px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0b0e;
+    --surface:#141418;
+    --surface-2:#1b1b21;
+    --ink:#f4f4f5;
+    --ink-soft:#d4d4d8;
+    --muted:#9b9ba4;
+    --line:#26262d;
+    --accent:#5b8bff;
+    --accent-ink:#0b0b0e;
+    --accent-soft:rgba(91,139,255,.14);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Noto Sans JP",system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:"Outfit","Noto Sans JP",sans-serif;}
+.wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
+a{color:inherit;text-decoration:none}
+section{position:relative}
+
+/* ---------- Nav (single line, <=80px) ---------- */
+header.nav{
+  position:sticky;top:0;z-index:50;
+  height:64px;display:flex;align-items:center;
+  background:color-mix(in srgb,var(--bg) 86%, transparent);
+  backdrop-filter:saturate(140%) blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.nav .wrap{display:flex;align-items:center;gap:28px;width:100%}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Outfit";font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
+.brand .mark{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:var(--accent)}
+.brand .mark svg{display:block}
+.nav nav{display:flex;gap:26px;margin-left:auto;font-size:.9rem;color:var(--muted)}
+.nav nav a:hover{color:var(--ink)}
+.nav .cta-mini{margin-left:8px}
+@media(max-width:820px){ .nav nav{display:none} .nav .cta-mini{margin-left:auto} }
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-weight:600;font-size:.95rem;line-height:1;white-space:nowrap;
+  padding:13px 20px;border-radius:var(--r-sm);
+  border:1px solid transparent;cursor:pointer;
+  transition:transform .18s var(--ease), background .18s, border-color .18s;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:9px 15px;font-size:.85rem}
+
+/* ---------- Hero ---------- */
+.hero{padding-top:84px;padding-bottom:64px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:"Outfit";font-weight:600;font-size:.78rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent);
+  background:var(--accent-soft);padding:6px 12px;border-radius:999px;
+  margin-bottom:22px;
+}
+h1.hero-h{
+  font-size:clamp(2.5rem,5.4vw,4rem);font-weight:800;
+  letter-spacing:-.03em;line-height:1.04;color:var(--ink);
+}
+h1.hero-h em{font-style:normal;color:var(--accent)}
+.hero p.sub{
+  margin-top:22px;color:var(--muted);font-size:1.08rem;
+  max-width:46ch;line-height:1.8;
+}
+.hero .actions{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+.hero .trust{margin-top:26px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.hero .trust b{color:var(--ink-soft);font-weight:600}
+
+/* hero visual: CSS/SVG transcription panel */
+.panel{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:0 24px 60px -30px rgba(20,20,40,.35);
+  overflow:hidden;
+}
+.panel .bar{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.dot{width:11px;height:11px;border-radius:50%}
+.panel .bar .label{margin-left:8px;font-size:.78rem;color:var(--muted);font-family:"Outfit"}
+.panel .bar .rec{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--accent);font-weight:600}
+.panel .bar .rec i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.6s infinite ease-in-out}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.panel .body{padding:18px 18px 8px}
+.line-row{display:flex;gap:11px;margin-bottom:16px;opacity:0;transform:translateY(6px);animation:lineIn .6s var(--ease) forwards}
+.line-row:nth-child(1){animation-delay:.2s}
+.line-row:nth-child(2){animation-delay:.7s}
+.line-row:nth-child(3){animation-delay:1.2s}
+@keyframes lineIn{to{opacity:1;transform:none}}
+.spk{flex:0 0 30px;height:30px;border-radius:8px;display:grid;place-items:center;font-family:"Outfit";font-weight:700;font-size:.72rem;color:#fff}
+.spk.a{background:var(--accent)}
+.spk.b{background:#7a59e6}
+.spk.c{background:#13b88a}
+.utter b{display:block;font-size:.74rem;color:var(--muted);font-weight:500;margin-bottom:2px}
+.utter span{display:block;font-size:.88rem;color:var(--ink-soft);line-height:1.5}
+.panel .summary{margin:6px 14px 16px;padding:14px;border-radius:var(--r-sm);background:var(--accent-soft)}
+.panel .summary h4{font-family:"Outfit";font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.panel .summary li{list-style:none;display:flex;gap:8px;font-size:.84rem;color:var(--ink-soft);margin-bottom:5px}
+.panel .summary li svg{flex:0 0 16px;margin-top:3px;color:var(--accent)}
+@media(max-width:880px){
+  .hero .wrap{grid-template-columns:1fr;gap:36px}
+  .hero{padding-top:48px}
+}
+
+/* ---------- Section heading ---------- */
+.sec{padding:84px 0}
+.sec-head{max-width:660px;margin-bottom:44px}
+.sec-head .kicker{font-family:"Outfit";font-weight:600;font-size:.82rem;letter-spacing:.04em;color:var(--accent);margin-bottom:12px}
+.sec-head h2{font-size:clamp(1.9rem,3.6vw,2.6rem);font-weight:700;letter-spacing:-.025em;line-height:1.12}
+.sec-head p{margin-top:14px;color:var(--muted);font-size:1.02rem;max-width:58ch}
+
+/* ---------- Features: featured + asymmetric bento (NOT 3 equal cols) ---------- */
+.feat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:26px;transition:transform .22s var(--ease),border-color .22s,box-shadow .22s;
+}
+.card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 18px 40px -28px rgba(20,20,40,.4)}
+.card .ico{width:42px;height:42px;border-radius:11px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);margin-bottom:16px}
+.card h3{font-size:1.12rem;font-weight:700;letter-spacing:-.01em;margin-bottom:8px;font-family:"Outfit"}
+.card p{color:var(--muted);font-size:.92rem;line-height:1.7}
+.card.feature{grid-column:span 3;grid-row:span 2;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(160deg,var(--surface),var(--surface-2))}
+.card.feature .ico{width:52px;height:52px}
+.card.feature h3{font-size:1.4rem}
+.card.feature .viz{margin-top:26px}
+.card.span2{grid-column:span 3}
+.card.span1{grid-column:span 3}
+/* mini waveform viz for featured */
+.wave{display:flex;align-items:flex-end;gap:4px;height:54px}
+.wave i{flex:1;background:var(--accent);border-radius:3px;opacity:.5;animation:waveb 1.4s infinite ease-in-out}
+.wave i:nth-child(odd){opacity:.85}
+@keyframes waveb{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.wave i{transform-origin:bottom}
+.wave i:nth-child(1){animation-delay:0s}.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.15s}.wave i:nth-child(6){animation-delay:.25s}.wave i:nth-child(7){animation-delay:.05s}.wave i:nth-child(8){animation-delay:.35s}.wave i:nth-child(9){animation-delay:.2s}.wave i:nth-child(10){animation-delay:.1s}.wave i:nth-child(11){animation-delay:.3s}.wave i:nth-child(12){animation-delay:.18s}.wave i:nth-child(13){animation-delay:.26s}.wave i:nth-child(14){animation-delay:.08s}
+@media(max-width:880px){
+  .feat-grid{grid-template-columns:1fr}
+  .card.feature,.card.span2,.card.span1{grid-column:auto;grid-row:auto}
+}
+
+/* ---------- Use cases: horizontal scroll-snap pills/cards ---------- */
+.cases{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 24px 22px;margin-inline:-24px;-webkit-overflow-scrolling:touch}
+.cases::-webkit-scrollbar{height:8px}
+.cases::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+.case{
+  scroll-snap-align:start;flex:0 0 290px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:24px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.case .num{font-family:"Outfit";font-weight:800;font-size:1.6rem;color:var(--accent);line-height:1}
+.case h3{font-size:1.08rem;font-weight:700;letter-spacing:-.01em;font-family:"Outfit"}
+.case p{color:var(--muted);font-size:.9rem;line-height:1.65}
+.case .tag{margin-top:auto;font-size:.76rem;color:var(--ink-soft);background:var(--surface-2);padding:5px 10px;border-radius:999px;align-self:flex-start}
+
+/* ---------- Benefits: asymmetric stat split ---------- */
+.benefit{background:var(--surface);border-block:1px solid var(--line)}
+.benefit .wrap{display:grid;grid-template-columns:1fr 1.15fr;gap:54px;align-items:center}
+.bigstat{font-family:"Outfit";font-weight:800;letter-spacing:-.04em;line-height:.95;font-size:clamp(4rem,11vw,7.5rem);color:var(--accent)}
+.bigstat sub{font-size:.32em;color:var(--muted);font-weight:600;vertical-align:baseline;margin-left:6px}
+.benefit .lead{margin-top:14px;font-size:1.05rem;color:var(--ink-soft);max-width:34ch}
+.ben-list{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ben-list .it{padding:20px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.ben-list .it .ico{color:var(--accent);margin-bottom:10px}
+.ben-list .it h4{font-family:"Outfit";font-size:1rem;font-weight:700;margin-bottom:6px}
+.ben-list .it p{color:var(--muted);font-size:.88rem;line-height:1.6}
+@media(max-width:880px){ .benefit .wrap{grid-template-columns:1fr;gap:30px} .ben-list{grid-template-columns:1fr} }
+
+/* ---------- Pricing ---------- */
+.toggle{display:inline-flex;align-items:center;gap:0;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px;margin:0 auto 40px;position:relative}
+.toggle button{font-family:"Outfit";font-weight:600;font-size:.88rem;border:none;background:transparent;color:var(--muted);padding:9px 20px;border-radius:999px;cursor:pointer;position:relative;z-index:2;transition:color .25s}
+.toggle button.on{color:var(--accent-ink)}
+.toggle .slider{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--accent);border-radius:999px;transition:transform .3s var(--ease);z-index:1}
+.toggle.year .slider{transform:translateX(100%)}
+.save-badge{font-size:.72rem;color:var(--accent);font-weight:600;margin-left:6px}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 22px 50px -32px rgba(31,92,255,.5);position:relative}
+.plan.hot::before{content:"人気";position:absolute;top:-12px;right:24px;background:var(--accent);color:var(--accent-ink);font-family:"Outfit";font-weight:700;font-size:.74rem;padding:4px 12px;border-radius:999px}
+.plan .pname{font-family:"Outfit";font-weight:700;font-size:1.2rem}
+.plan .pdesc{color:var(--muted);font-size:.86rem;margin:6px 0 20px;min-height:38px}
+.plan .pprice{font-family:"Outfit";font-weight:800;font-size:2.6rem;letter-spacing:-.03em;line-height:1}
+.plan .pprice small{font-size:.9rem;color:var(--muted);font-weight:500;margin-left:4px}
+.plan .punit{color:var(--muted);font-size:.82rem;margin-top:6px;min-height:20px}
+.plan ul{list-style:none;margin:22px 0;display:flex;flex-direction:column;gap:11px}
+.plan li{display:flex;gap:9px;font-size:.9rem;color:var(--ink-soft);line-height:1.5}
+.plan li svg{flex:0 0 17px;margin-top:3px;color:var(--accent)}
+.plan .btn{margin-top:auto;width:100%;justify-content:center}
+@media(max-width:880px){ .price-grid{grid-template-columns:1fr} }
+
+/* ---------- FAQ accordion ---------- */
+.faq-wrap{max-width:780px;margin-inline:auto}
+.faq{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:12px;overflow:hidden}
+.faq button.q{width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 22px;background:transparent;border:none;cursor:pointer;font-family:"Noto Sans JP";font-weight:600;font-size:1rem;color:var(--ink)}
+.faq button.q .plus{margin-left:auto;flex:0 0 22px;height:22px;position:relative;transition:transform .3s var(--ease)}
+.faq button.q .plus::before,.faq button.q .plus::after{content:"";position:absolute;background:var(--accent);border-radius:2px}
+.faq button.q .plus::before{top:10px;left:2px;right:2px;height:2px}
+.faq button.q .plus::after{left:10px;top:2px;bottom:2px;width:2px;transition:opacity .3s}
+.faq.open button.q .plus{transform:rotate(180deg)}
+.faq.open button.q .plus::after{opacity:0}
+.faq .a{max-height:0;overflow:hidden;transition:max-height .35s var(--ease)}
+.faq .a p{padding:0 22px 22px;color:var(--muted);font-size:.94rem;line-height:1.8}
+
+/* ---------- Final CTA ---------- */
+.final{padding:96px 0}
+.final .box{
+  background:var(--ink);color:var(--bg);border-radius:var(--r-lg);
+  padding:64px 48px;text-align:center;position:relative;overflow:hidden;
+}
+@media (prefers-color-scheme: dark){ .final .box{background:linear-gradient(160deg,#17171d,#101015);border:1px solid var(--line)} }
+.final .box h2{font-family:"Outfit";font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;color:#fff}
+.final .box p{margin:16px auto 30px;max-width:48ch;color:#a1a1aa;font-size:1.05rem}
+.final .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.final .glow{position:absolute;inset:auto;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 70%);opacity:.28;filter:blur(8px);top:-120px;right:-80px}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--muted);font-size:.86rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+footer nav{display:flex;gap:22px}
+footer nav a:hover{color:var(--ink)}
+
+/* ---------- Scroll reveal ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+  .line-row{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#" class="brand">
+      <span class="mark">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </span>
+      Minutes AI
+    </a>
+    <nav>
+      <a href="#features">機能</a>
+      <a href="#cases">活用シーン</a>
+      <a href="#pricing">料金</a>
+      <a href="#faq">よくある質問</a>
+    </nav>
+    <a href="#cta" class="btn btn-primary btn-sm cta-mini">無料で試す</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">AI議事録アシスタント</span>
+      <h1 class="hero-h">録音するだけで、<br><em>議事録は完成</em>している。</h1>
+      <p class="sub">会議の音声から、文字起こし・要約・決定事項の抽出までを自動化。終わった瞬間に共有できる議事録が、もう手元にあります。</p>
+      <div class="actions">
+        <a href="#cta" class="btn btn-primary">無料で試す</a>
+        <a href="#demo" class="btn btn-ghost">デモを見る</a>
+      </div>
+      <div class="trust">
+        <span>クレジットカード不要</span>
+        <span>・</span>
+        <span><b>14日間</b>すべての機能を無料で</span>
+      </div>
+    </div>
+
+    <!-- CSS/SVG transcription panel -->
+    <div class="panel" id="demo">
+      <div class="bar">
+        <span class="dot" style="background:#ff5f57"></span>
+        <span class="dot" style="background:#febc2e"></span>
+        <span class="dot" style="background:#28c840"></span>
+        <span class="label">週次プロダクト定例.mtg</span>
+        <span class="rec"><i></i>文字起こし中</span>
+      </div>
+      <div class="body">
+        <div class="line-row">
+          <span class="spk a">山田</span>
+          <span class="utter"><b>山田 / PM</b><span>来週のリリースは予定どおり進めて大丈夫そうです。</span></span>
+        </div>
+        <div class="line-row">
+          <span class="spk b">佐藤</span>
+          <span class="utter"><b>佐藤 / Design</b><span>では金曜までに最終のデザインデータを共有します。</span></span>
+        </div>
+        <div class="line-row">
+          <span class="spk c">田中</span>
+          <span class="utter"><b>田中 / Dev</b><span>QAの期間を一日だけ前倒しできると安心ですね。</span></span>
+        </div>
+      </div>
+      <div class="summary">
+        <h4>AIが抽出した決定事項</h4>
+        <ul>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>リリースは予定どおり来週実施</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>佐藤: 金曜までにデザインデータ共有</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>QA期間の前倒しを検討</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES (asymmetric bento, not 3 equal cols) -->
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">FEATURES</div>
+      <h2>議事録づくりの面倒を、まるごと引き受ける。</h2>
+      <p>録音から共有までを一気通貫で。会議のたびに発生していた手作業を、Minutes AI が静かに片づけます。</p>
+    </div>
+    <div class="feat-grid">
+      <div class="card feature reveal">
+        <div>
+          <div class="ico">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+          </div>
+          <h3>リアルタイム文字起こし</h3>
+          <p>会議中の発言をその場でテキスト化。終了と同時に読める原稿が手に入り、聞き直しの時間がいりません。日本語と英語の混在にも対応します。</p>
+        </div>
+        <div class="viz">
+          <div class="wave">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span2 reveal">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+        </div>
+        <h3>AI要約と決定事項の抽出</h3>
+        <p>長い議論から、要点・決定・宿題を自動で構造化。誰が何をいつまでに、までが一目でわかる形に整理します。</p>
+      </div>
+
+      <div class="card span1 reveal">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>話者の自動判別</h3>
+        <p>声をもとに発言者を区別し、発言ごとに名前を割り当て。「誰の発言か」が後から迷子になりません。</p>
+      </div>
+
+      <div class="card reveal" style="grid-column:span 2">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <h3>主要ツールと連携</h3>
+        <p>Slack や Google カレンダー、各種オンライン会議ツールと接続。会議が終われば、議事録は自動で然るべき場所へ届きます。</p>
+      </div>
+
+      <div class="card reveal" style="grid-column:span 2">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <h3>横断検索とナレッジ化</h3>
+        <p>過去のすべての会議をまたいでキーワード検索。あの決定はいつのどの会議で、をすぐに辿れます。</p>
+      </div>
+
+      <div class="card reveal" style="grid-column:span 2">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/></svg>
+        </div>
+        <h3>エンタープライズ級セキュリティ</h3>
+        <p>通信と保存データの暗号化、アクセス権限の細かな管理に対応。録音データの保管期間も組織のポリシーに合わせて設定できます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES (horizontal scroll-snap) -->
+<section class="sec" id="cases" style="background:var(--surface-2)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">USE CASES</div>
+      <h2>あらゆる会議が、記録に値する。</h2>
+      <p>定例から1on1まで。残しておきたい議論が生まれる場所すべてで使えます。横にスクロールしてご覧ください。</p>
+    </div>
+  </div>
+  <div class="wrap" style="max-width:none;padding-inline:max(24px,calc((100vw - var(--maxw))/2 + 24px))">
+    <div class="cases reveal">
+      <div class="case"><span class="num">01</span><h3>役員会議・定例会</h3><p>決定事項と次のアクションを正確に記録。配布資料としてそのまま展開できます。</p><span class="tag">意思決定の記録</span></div>
+      <div class="case"><span class="num">02</span><h3>商談・顧客ヒアリング</h3><p>顧客の要望を聞き漏らさず文字に。提案準備や引き継ぎがスムーズになります。</p><span class="tag">営業・CS</span></div>
+      <div class="case"><span class="num">03</span><h3>ブレスト・進捗MTG</h3><p>飛び交うアイデアを後から整理。発散した議論も要点だけ拾い直せます。</p><span class="tag">チーム運営</span></div>
+      <div class="case"><span class="num">04</span><h3>面接・1on1</h3><p>対話に集中しながら記録は自動で。振り返りやフィードバックに役立ちます。</p><span class="tag">人事・マネジメント</span></div>
+      <div class="case"><span class="num">05</span><h3>海外拠点との会議</h3><p>英語の発言も文字起こしと要約に対応。言語をまたいだ共有が楽になります。</p><span class="tag">グローバル</span></div>
+      <div class="case"><span class="num">06</span><h3>社内勉強会・ウェビナー</h3><p>登壇内容をテキスト化し、参加できなかった人にも知見を届けられます。</p><span class="tag">ナレッジ共有</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS (asymmetric stat split) -->
+<section class="sec benefit">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="bigstat">約90<sub>%削減</sub></div>
+      <p class="lead">議事録の作成にかかっていた時間を、ほぼゼロに。空いた時間を、次の一手に使えます。</p>
+    </div>
+    <div class="ben-list reveal">
+      <div class="it">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h4>抜け漏れを防ぐ</h4>
+        <p>決定とタスクをAIが拾い上げ、「言った言わない」をなくします。</p>
+      </div>
+      <div class="it">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div>
+        <h4>組織の資産になる</h4>
+        <p>会議の記録が蓄積され、検索可能なナレッジへと育ちます。</p>
+      </div>
+      <div class="it">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></div>
+        <h4>議論に集中できる</h4>
+        <p>メモを取る手が止まらないから、目の前の対話に向き合えます。</p>
+      </div>
+      <div class="it">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div>
+        <h4>共有がはやい</h4>
+        <p>会議が終わった瞬間に、整った議事録を関係者へ展開できます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing">
+  <div class="wrap" style="text-align:center">
+    <div class="sec-head reveal" style="margin-inline:auto;text-align:center">
+      <div class="kicker">PRICING</div>
+      <h2>チームに合うプランを。</h2>
+      <p style="margin-inline:auto">まずは無料で。必要になったら、人数と使い方に合わせて広げられます。</p>
+    </div>
+
+    <div class="toggle" id="billingToggle" role="group" aria-label="請求サイクル">
+      <span class="slider"></span>
+      <button class="on" data-cycle="month">月払い</button>
+      <button data-cycle="year">年払い<span class="save-badge">2か月分お得</span></button>
+    </div>
+
+    <div class="price-grid" style="text-align:left">
+      <!-- Starter -->
+      <div class="plan reveal">
+        <div class="pname">Starter</div>
+        <div class="pdesc">個人や少人数で、まず試したいチームに。</div>
+        <div class="pprice"><span data-m="0" data-y="0">¥0</span></div>
+        <div class="punit">ユーザー1名まで無料</div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>月10時間までの文字起こし</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>AI要約と決定事項の抽出</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>過去30日分の保存</li>
+        </ul>
+        <a href="#cta" class="btn btn-ghost">無料で始める</a>
+      </div>
+
+      <!-- Business -->
+      <div class="plan hot reveal">
+        <div class="pname">Business</div>
+        <div class="pdesc">日々の会議を回す、現場のチームに。</div>
+        <div class="pprice"><span data-m="¥1,800" data-y="¥1,500">¥1,800</span><small>/ ユーザー</small></div>
+        <div class="punit" data-unit>月払い・月額</div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>文字起こし時間が無制限</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>話者の自動判別</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Slack・カレンダー連携</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>横断検索とナレッジ化</li>
+        </ul>
+        <a href="#cta" class="btn btn-primary">無料で試す</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="plan reveal">
+        <div class="pname">Enterprise</div>
+        <div class="pdesc">全社導入とガバナンスが必要な組織に。</div>
+        <div class="pprice"><span data-m="個別" data-y="個別">個別</span></div>
+        <div class="punit">お見積りでご案内します</div>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Business のすべての機能</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>SSO・詳細なアクセス権限</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>データ保管ポリシーの設定</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>専任の導入サポート</li>
+        </ul>
+        <a href="#cta" class="btn btn-ghost">相談する</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="faq" style="background:var(--surface-2)">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-inline:auto;text-align:center">
+      <div class="kicker">FAQ</div>
+      <h2>よくある質問</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="faq reveal">
+        <button class="q" aria-expanded="false">録音した音声データはどう扱われますか<span class="plus"></span></button>
+        <div class="a"><p>通信と保存の両方でデータを暗号化して管理します。録音データの保管期間はプランに応じて設定でき、Enterprise では組織のポリシーに合わせた運用が可能です。学習目的での二次利用は行いません。</p></div>
+      </div>
+      <div class="faq reveal">
+        <button class="q" aria-expanded="false">どのくらいの精度で文字起こしできますか<span class="plus"></span></button>
+        <div class="a"><p>静かな環境でのはっきりした発話であれば、実用に十分な精度でテキスト化できます。専門用語や固有名詞は辞書登録で精度を高められ、文字起こし結果は後から手動で編集することもできます。</p></div>
+      </div>
+      <div class="faq reveal">
+        <button class="q" aria-expanded="false">対面の会議でも使えますか<span class="plus"></span></button>
+        <div class="a"><p>はい。オンライン会議だけでなく、スマートフォンやマイクで録音した対面会議の音声にも対応しています。録音済みの音声ファイルをアップロードして処理することも可能です。</p></div>
+      </div>
+      <div class="faq reveal">
+        <button class="q" aria-expanded="false">日本語以外の言語に対応していますか<span class="plus"></span></button>
+        <div class="a"><p>日本語と英語に対応しており、両者が混在する会議でも文字起こしと要約を行えます。対応言語は順次拡大しています。</p></div>
+      </div>
+      <div class="faq reveal">
+        <button class="q" aria-expanded="false">無料プランから有料プランへ移行できますか<span class="plus"></span></button>
+        <div class="a"><p>いつでもアップグレードできます。Starter で作成した議事録や設定はそのまま引き継がれるため、移行による作業のやり直しは発生しません。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" id="cta">
+  <div class="wrap">
+    <div class="box reveal">
+      <span class="glow"></span>
+      <h2>次の会議から、議事録を手放そう。</h2>
+      <p>登録は1分。今日の打ち合わせから、Minutes AI に記録を任せられます。</p>
+      <div class="actions">
+        <a href="#" class="btn btn-primary">無料で試す</a>
+        <a href="#demo" class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">デモを見る</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="brand" style="font-size:1rem">
+      <span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span>
+      Minutes AI
+    </div>
+    <nav>
+      <a href="#features">機能</a>
+      <a href="#pricing">料金</a>
+      <a href="#faq">よくある質問</a>
+      <a href="#">プライバシー</a>
+    </nav>
+    <span>© 2026 Minutes AI</span>
+  </div>
+</footer>
+
+<script>
+// ---- Pricing toggle ----
+(function(){
+  var toggle = document.getElementById('billingToggle');
+  var btns = toggle.querySelectorAll('button');
+  var prices = document.querySelectorAll('.pprice [data-m]');
+  var unit = document.querySelector('[data-unit]');
+  function setCycle(cycle){
+    toggle.classList.toggle('year', cycle === 'year');
+    btns.forEach(function(b){ b.classList.toggle('on', b.dataset.cycle === cycle); });
+    prices.forEach(function(p){ p.textContent = cycle === 'year' ? p.dataset.y : p.dataset.m; });
+    if(unit){ unit.textContent = cycle === 'year' ? '年払い・月あたり' : '月払い・月額'; }
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ setCycle(b.dataset.cycle); }); });
+})();
+
+// ---- FAQ accordion ----
+document.querySelectorAll('.faq .q').forEach(function(q){
+  q.addEventListener('click', function(){
+    var faq = q.closest('.faq');
+    var ans = faq.querySelector('.a');
+    var open = faq.classList.toggle('open');
+    q.setAttribute('aria-expanded', open ? 'true' : 'false');
+    ans.style.maxHeight = open ? ans.scrollHeight + 'px' : '0px';
+  });
+});
+
+// ---- Scroll reveal (transform/opacity only) ----
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ els.forEach(function(e){e.classList.add('in')}); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, {threshold:.14, rootMargin:'0px 0px -40px 0px'});
+  els.forEach(function(e){ io.observe(e); });
+})();
+</script>
+</body>
+</html>

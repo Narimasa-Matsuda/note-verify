@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexaWorks株式会社 | 業務システム開発・DX支援・クラウド導入支援</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #16181d;          /* zinc-950 寄り、純黒は使わない */
+    --surface: #1e2127;
+    --surface-2: #262a31;
+    --line: #2f343d;
+    --line-soft: #272b33;
+    --ink: #f2f3f5;
+    --ink-muted: #a4abb6;
+    --ink-faint: #767d89;
+    --accent: #2f7d5b;      /* Emerald 系（彩度<80%） */
+    --accent-bright: #3a9b71;
+    --accent-ink: #d7f0e3;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --max: 1120px;
+    --ease: cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:"Noto Sans JP","Outfit",system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3{font-family:"Outfit","Noto Sans JP",sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.12;margin:0}
+  p{margin:0}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+  .eyebrow{
+    font-family:"Outfit",sans-serif;font-weight:600;font-size:.78rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent-bright);margin:0 0 14px;
+  }
+  .lead{color:var(--ink-muted);max-width:62ch;line-height:1.85}
+
+  /* ---------- ヘッダー / ナビ（単一行） ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    height:72px;display:flex;align-items:center;
+    background:rgba(22,24,29,.72);
+    backdrop-filter:saturate(140%) blur(12px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .brand{display:flex;align-items:center;gap:10px;font-family:"Outfit",sans-serif;font-weight:700;font-size:1.12rem;letter-spacing:-.01em}
+  .brand .mark{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));display:inline-block;position:relative}
+  .brand .mark::after{content:"";position:absolute;inset:7px;border-radius:3px;background:var(--bg)}
+  .nav-links{display:flex;align-items:center;gap:30px;font-size:.92rem;color:var(--ink-muted)}
+  .nav-links a{transition:color .2s var(--ease)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{
+    font-size:.88rem;font-weight:700;padding:9px 18px;border-radius:9px;
+    background:var(--accent);color:#fff;transition:background .2s var(--ease),transform .2s var(--ease)
+  }
+  .nav-cta:hover{background:var(--accent-bright)}
+  .burger{display:none;background:none;border:0;color:var(--ink);width:40px;height:40px;cursor:pointer}
+  .burger span{display:block;width:20px;height:2px;background:currentColor;margin:4px auto;border-radius:2px}
+
+  /* ---------- ヒーロー（ビューポート内・写真） ---------- */
+  .hero{
+    position:relative;min-height:calc(100vh - 72px);
+    display:flex;align-items:center;
+    background-image:
+      linear-gradient(100deg, rgba(18,20,24,.94) 0%, rgba(18,20,24,.78) 46%, rgba(18,20,24,.40) 100%),
+      url("https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1900&q=80");
+    background-size:cover;background-position:center;
+  }
+  .hero-inner{padding:88px 0 96px;max-width:720px}
+  .hero h1{font-size:clamp(2.3rem,5.4vw,3.7rem);margin:0 0 22px}
+  .hero h1 .accent{color:var(--accent-bright)}
+  .hero .sub{font-size:1.08rem;color:#cdd2da;max-width:54ch;margin:0 0 34px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:.96rem;
+    padding:14px 26px;border-radius:11px;transition:transform .2s var(--ease),background .2s var(--ease),border-color .2s var(--ease);
+  }
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-bright)}
+  .btn-ghost{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.22)}
+  .btn-ghost:hover{border-color:rgba(255,255,255,.5)}
+  .btn svg{width:16px;height:16px}
+
+  /* ---------- セクション共通 ---------- */
+  section{padding:104px 0}
+  .sec-head{max-width:640px;margin:0 0 56px}
+  .sec-head h2{font-size:clamp(1.7rem,3.4vw,2.45rem);margin:0 0 18px}
+
+  /* ---------- 選ばれる理由（非対称・featured + rest） ---------- */
+  #reasons{background:var(--surface)}
+  .reasons-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px}
+  .reason-feature{
+    grid-row:span 2;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:40px;display:flex;flex-direction:column;justify-content:space-between;min-height:340px;
+  }
+  .reason-feature .tag{font-family:"Outfit",sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.06em;color:var(--accent-bright);margin-bottom:18px}
+  .reason-feature h3{font-size:1.55rem;margin:0 0 16px}
+  .reason-feature p{color:var(--ink-muted)}
+  .reason-card{
+    background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:28px 30px;
+    transition:border-color .25s var(--ease),transform .25s var(--ease);
+  }
+  .reason-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+  .reason-card .num{font-family:"Outfit",sans-serif;font-weight:700;font-size:1.05rem;color:var(--accent-bright);margin-bottom:10px}
+  .reason-card h3{font-size:1.18rem;margin:0 0 9px}
+  .reason-card p{color:var(--ink-muted);font-size:.95rem;line-height:1.8}
+
+  /* ---------- 事業内容（ジグザグ 2件 + リスト群） ---------- */
+  #services{background:var(--bg)}
+  .zig{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center;margin-bottom:30px}
+  .zig.alt{direction:rtl}
+  .zig.alt > *{direction:ltr}
+  .zig-media{
+    border-radius:var(--radius);min-height:300px;border:1px solid var(--line);
+    background-size:cover;background-position:center;
+  }
+  .zig-media.m1{background-image:linear-gradient(180deg,rgba(20,22,27,.25),rgba(20,22,27,.45)),url("https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1100&q=80")}
+  .zig-media.m2{background-image:linear-gradient(180deg,rgba(20,22,27,.25),rgba(20,22,27,.45)),url("https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1100&q=80")}
+  .zig-body .eyebrow{margin-bottom:12px}
+  .zig-body h3{font-size:1.6rem;margin:0 0 16px}
+  .zig-body p{color:var(--ink-muted);max-width:46ch}
+  .zig-list{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:9px}
+  .zig-list li{display:flex;align-items:flex-start;gap:10px;color:var(--ink-muted);font-size:.95rem}
+  .zig-list li svg{width:17px;height:17px;color:var(--accent-bright);flex-shrink:0;margin-top:4px}
+  .svc-pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:14px}
+  .svc-small{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:32px 34px}
+  .svc-small h3{font-size:1.22rem;margin:0 0 12px}
+  .svc-small p{color:var(--ink-muted);font-size:.95rem}
+  .svc-small .ic{width:42px;height:42px;border-radius:11px;background:rgba(47,125,91,.16);display:grid;place-items:center;margin-bottom:18px}
+  .svc-small .ic svg{width:21px;height:21px;color:var(--accent-bright)}
+
+  /* ---------- 導入事例（横スクロール・スナップ） ---------- */
+  #cases{background:var(--surface)}
+  .case-track{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .case-card{
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    display:flex;flex-direction:column;transition:transform .25s var(--ease),border-color .25s var(--ease);
+  }
+  .case-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+  .case-img{height:172px;background-size:cover;background-position:center}
+  .case-img.c1{background-image:url("https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=900&q=80")}
+  .case-img.c2{background-image:url("https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80")}
+  .case-img.c3{background-image:url("https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80")}
+  .case-body{padding:26px 28px;display:flex;flex-direction:column;gap:12px;flex:1}
+  .case-meta{font-family:"Outfit",sans-serif;font-weight:600;font-size:.78rem;letter-spacing:.06em;color:var(--accent-bright)}
+  .case-card h3{font-size:1.18rem;line-height:1.4}
+  .case-card p{color:var(--ink-muted);font-size:.93rem;line-height:1.8}
+  .case-result{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:.9rem;color:var(--ink)}
+  .case-result b{color:var(--accent-bright);font-family:"Outfit",sans-serif}
+
+  /* ---------- ニュース ---------- */
+  #news{background:var(--bg)}
+  .news-list{display:flex;flex-direction:column}
+  .news-row{
+    display:grid;grid-template-columns:130px 110px 1fr;gap:24px;align-items:baseline;
+    padding:22px 4px;border-bottom:1px solid var(--line-soft);transition:background .2s var(--ease)
+  }
+  .news-row:hover{background:var(--surface)}
+  .news-date{font-family:"Outfit",sans-serif;color:var(--ink-faint);font-size:.9rem}
+  .news-cat{font-size:.76rem;font-weight:700;color:var(--accent-bright);border:1px solid rgba(58,155,113,.4);border-radius:20px;padding:3px 12px;justify-self:start;white-space:nowrap}
+  .news-title{color:var(--ink);font-size:.98rem;transition:color .2s var(--ease)}
+  .news-row:hover .news-title{color:var(--accent-bright)}
+
+  /* ---------- 会社概要 ---------- */
+  #company{background:var(--surface)}
+  .company-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:start}
+  .company-copy p{color:var(--ink-muted);margin-top:18px}
+  .company-photo{border-radius:var(--radius);min-height:280px;border:1px solid var(--line);
+    background-image:linear-gradient(180deg,rgba(20,22,27,.2),rgba(20,22,27,.4)),url("https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1100&q=80");
+    background-size:cover;background-position:center;margin-top:24px}
+  .info-table{width:100%;border-collapse:collapse}
+  .info-table th,.info-table td{text-align:left;padding:16px 4px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.95rem}
+  .info-table th{width:150px;color:var(--ink-faint);font-weight:500}
+  .info-table td{color:var(--ink)}
+
+  /* ---------- お問い合わせ CTA ---------- */
+  #contact{background:var(--bg)}
+  .contact-shell{
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:56px;display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:start;
+  }
+  .contact-intro h2{font-size:clamp(1.6rem,3vw,2.2rem);margin:0 0 18px}
+  .contact-intro p{color:var(--ink-muted);max-width:38ch}
+  .contact-ph{margin-top:28px;font-family:"Outfit",sans-serif}
+  .contact-ph .lbl{font-size:.82rem;color:var(--ink-faint);letter-spacing:.04em}
+  .contact-ph .val{font-size:1.5rem;font-weight:700;color:var(--ink)}
+  form{display:grid;gap:18px}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field label{font-size:.86rem;color:var(--ink-muted);font-weight:500}
+  .field input,.field textarea,.field select{
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:13px 15px;color:var(--ink);font-family:inherit;font-size:.95rem;transition:border-color .2s var(--ease)
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent-bright)}
+  .field .err{font-size:.8rem;color:#e1736b;min-height:1.1em}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .form-submit{justify-self:start;border:0;cursor:pointer;background:var(--accent);color:#fff;font-weight:700;font-size:.98rem;padding:14px 30px;border-radius:11px;transition:background .2s var(--ease)}
+  .form-submit:hover{background:var(--accent-bright)}
+  .form-note{font-size:.82rem;color:var(--ink-faint)}
+
+  /* ---------- フッター ---------- */
+  footer{background:var(--surface);border-top:1px solid var(--line-soft);padding:54px 0 36px;color:var(--ink-muted)}
+  .foot-top{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;margin-bottom:36px}
+  .foot-cols{display:flex;gap:64px;flex-wrap:wrap}
+  .foot-col h4{font-size:.82rem;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase;margin:0 0 14px;font-family:"Outfit",sans-serif}
+  .foot-col a{display:block;font-size:.92rem;padding:5px 0;transition:color .2s var(--ease)}
+  .foot-col a:hover{color:var(--ink)}
+  .foot-bottom{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:24px;border-top:1px solid var(--line-soft);font-size:.84rem;color:var(--ink-faint)}
+
+  /* ---------- reveal ---------- */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- レスポンシブ ---------- */
+  @media(max-width:900px){
+    .nav-links{display:none}
+    .burger{display:block}
+    .reasons-grid{grid-template-columns:1fr}
+    .reason-feature{grid-row:auto;min-height:auto}
+    .zig,.zig.alt{grid-template-columns:1fr;direction:ltr;gap:28px}
+    .zig.alt .zig-media{order:-1}
+    .svc-pair{grid-template-columns:1fr}
+    .case-track{grid-template-columns:1fr}
+    .company-grid{grid-template-columns:1fr;gap:34px}
+    .contact-shell{grid-template-columns:1fr;padding:36px 28px;gap:36px}
+  }
+  @media(max-width:560px){
+    section{padding:72px 0}
+    .news-row{grid-template-columns:1fr;gap:6px}
+    .field-row{grid-template-columns:1fr}
+    .hero-inner{padding:64px 0 72px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><span class="mark"></span>NexaWorks</a>
+    <nav class="nav-links">
+      <a href="#services">事業内容</a>
+      <a href="#cases">導入事例</a>
+      <a href="#news">お知らせ</a>
+      <a href="#company">会社概要</a>
+      <a href="#contact" class="nav-cta">お問い合わせ</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="メニューを開く"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- ヒーロー -->
+<section class="hero" id="top">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">業務システム開発 / DX支援 / クラウド導入</p>
+    <h1>現場の業務を理解し、<br><span class="accent">動くシステム</span>まで作り切る。</h1>
+    <p class="sub">要件整理から開発、運用、内製化まで。NexaWorksは中堅企業の情報システム部門に伴走し、相談しやすさとやり切る力で支援します。</p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">無料相談を申し込む
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="#cases" class="btn btn-ghost">導入事例を見る</a>
+    </div>
+  </div>
+</section>
+
+<!-- 選ばれる理由 -->
+<section id="reasons">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">選ばれる理由</p>
+      <h2>「相談しやすさ」と「やり切る力」。</h2>
+      <p class="lead">作って終わりにしない。業務の文脈を理解した上で提案し、稼働後の運用や内製化まで見据えて並走します。</p>
+    </div>
+    <div class="reasons-grid">
+      <div class="reason-feature reveal">
+        <div>
+          <p class="tag">伴走支援</p>
+          <h3>業務理解に根ざした提案</h3>
+          <p>テンプレートのDXではなく、現場の業務フローと制約を把握してから設計します。情報システム部門の方が社内で説明しやすい、地に足のついた提案を心がけています。</p>
+        </div>
+        <p style="color:var(--ink-faint);font-size:.88rem;margin-top:24px">ヒアリングから要件定義まで、最初の議論を丁寧に。</p>
+      </div>
+      <div class="reason-card reveal">
+        <p class="num">01</p>
+        <h3>上流から運用まで一気通貫</h3>
+        <p>構想・要件定義から開発、本番運用まで。担当が分断されず、責任の所在が明確です。</p>
+      </div>
+      <div class="reason-card reveal">
+        <p class="num">02</p>
+        <h3>内製化を見据えた並走</h3>
+        <p>ドキュメントと勉強会を通じて、最終的にお客様自身で運用・改善できる状態を目指します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 事業内容 -->
+<section id="services">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">事業内容</p>
+      <h2>業務に効く4つの支援領域。</h2>
+    </div>
+
+    <div class="zig reveal">
+      <div class="zig-media m1"></div>
+      <div class="zig-body">
+        <h3>業務システム開発</h3>
+        <p>基幹システムや業務アプリの新規開発・刷新。既存業務を整理し、無理のない移行計画とともに構築します。</p>
+        <ul class="zig-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>要件定義・業務フロー整理</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>既存システムからの段階的移行</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>外部システム・API連携</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="zig alt reveal">
+      <div class="zig-media m2"></div>
+      <div class="zig-body">
+        <h3>DX推進支援</h3>
+        <p>紙やExcelに依存した業務をデジタル化。現場が使い続けられる形を優先し、定着までを支援します。</p>
+        <ul class="zig-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>業務プロセスの可視化と棚卸し</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>ツール選定と導入計画</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>社内定着のための運用設計</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="svc-pair">
+      <div class="svc-small reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>
+        <h3>クラウド導入支援</h3>
+        <p>オンプレからクラウドへの移行設計と構築。コストと運用負荷を見ながら、無理のない構成を提案します。</p>
+      </div>
+      <div class="svc-small reveal">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        <h3>運用・保守・内製化支援</h3>
+        <p>稼働後の監視・改善を継続支援。並行して社内チームへの引き継ぎを進め、自走できる体制づくりを助けます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 導入事例 -->
+<section id="cases">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">導入事例</p>
+      <h2>業務の課題から始まった3つのプロジェクト。</h2>
+    </div>
+    <div class="case-track">
+      <div class="case-card reveal">
+        <div class="case-img c1"></div>
+        <div class="case-body">
+          <p class="case-meta">製造業 / 基幹システム刷新</p>
+          <h3>老朽化した生産管理システムを刷新</h3>
+          <p>属人化していた生産計画の管理を見直し、現場の運用に合わせて段階的に置き換え。停止を最小限に抑えて移行しました。</p>
+          <div class="case-result">受注から出荷までの情報を <b>一元管理</b></div>
+        </div>
+      </div>
+      <div class="case-card reveal">
+        <div class="case-img c2"></div>
+        <div class="case-body">
+          <p class="case-meta">卸売業 / クラウド移行</p>
+          <h3>社内サーバーをクラウドへ移行</h3>
+          <p>保守期限を迎えたオンプレ環境をクラウドへ。アクセス権限を整理し、リモートでも安全に使える基盤に再構成しました。</p>
+          <div class="case-result">運用監視の手間を <b>大幅に削減</b></div>
+        </div>
+      </div>
+      <div class="case-card reveal">
+        <div class="case-img c3"></div>
+        <div class="case-body">
+          <p class="case-meta">小売業 / データ基盤</p>
+          <h3>需要予測に向けたデータ基盤を整備</h3>
+          <p>店舗ごとに散らばっていた販売データを集約。在庫と発注の判断材料を可視化し、需要予測の検討に着手しました。</p>
+          <div class="case-result">部門横断の <b>データ活用</b> を開始</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ニュース -->
+<section id="news">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">ニュース・お知らせ</p>
+      <h2>最近のお知らせ。</h2>
+    </div>
+    <div class="news-list reveal">
+      <a class="news-row" href="#">
+        <span class="news-date">2026.06.10</span>
+        <span class="news-cat">お知らせ</span>
+        <span class="news-title">クラウド導入支援サービスの提供メニューを更新しました</span>
+      </a>
+      <a class="news-row" href="#">
+        <span class="news-date">2026.05.22</span>
+        <span class="news-cat">導入事例</span>
+        <span class="news-title">製造業向け生産管理システム刷新の事例を公開しました</span>
+      </a>
+      <a class="news-row" href="#">
+        <span class="news-date">2026.04.15</span>
+        <span class="news-cat">採用</span>
+        <span class="news-title">2027年度の新卒・中途採用エントリー受付を開始しました</span>
+      </a>
+      <a class="news-row" href="#">
+        <span class="news-date">2026.03.03</span>
+        <span class="news-cat">お知らせ</span>
+        <span class="news-title">本社移転に伴うお問い合わせ窓口の変更について</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 会社概要 -->
+<section id="company">
+  <div class="wrap">
+    <div class="company-grid">
+      <div class="company-copy reveal">
+        <p class="eyebrow">会社概要</p>
+        <h2 style="font-size:clamp(1.6rem,3vw,2.2rem)">技術と業務の<br>あいだに立つ会社。</h2>
+        <p>NexaWorksは、システムを「作る側」と「使う側」の言葉の違いを埋めることを大切にしています。専門用語に寄りかからず、業務の言葉で対話することを基本姿勢としています。</p>
+        <div class="company-photo"></div>
+      </div>
+      <div class="reveal">
+        <table class="info-table">
+          <tr><th>会社名</th><td>NexaWorks株式会社</td></tr>
+          <tr><th>所在地</th><td>東京都千代田区神田錦町2-1（本社）</td></tr>
+          <tr><th>事業内容</th><td>業務システム開発／DX推進支援／クラウド導入支援／運用・保守・内製化支援</td></tr>
+          <tr><th>主な取引先</th><td>製造業・卸売業・小売業を中心とした中堅企業</td></tr>
+          <tr><th>対応体制</th><td>要件定義から運用まで一貫対応。少人数チームでの伴走を基本としています。</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- お問い合わせ CTA -->
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-shell reveal">
+      <div class="contact-intro">
+        <h2>まずは課題の整理から、ご相談ください。</h2>
+        <p>システム化するかどうか迷っている段階でも構いません。現状をうかがった上で、進め方をご提案します。</p>
+        <div class="contact-ph">
+          <div class="lbl">お電話でのお問い合わせ（平日 9:00 - 18:00）</div>
+          <div class="val">03-1234-5678</div>
+        </div>
+      </div>
+      <form id="contactForm" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="cf-company">会社名</label>
+            <input id="cf-company" name="company" type="text" autocomplete="organization">
+            <span class="err" data-for="cf-company"></span>
+          </div>
+          <div class="field">
+            <label for="cf-name">お名前</label>
+            <input id="cf-name" name="name" type="text" autocomplete="name">
+            <span class="err" data-for="cf-name"></span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="cf-email">メールアドレス</label>
+          <input id="cf-email" name="email" type="email" autocomplete="email">
+          <span class="err" data-for="cf-email"></span>
+        </div>
+        <div class="field">
+          <label for="cf-topic">ご相談内容</label>
+          <select id="cf-topic" name="topic">
+            <option value="">選択してください</option>
+            <option>業務システム開発</option>
+            <option>DX推進支援</option>
+            <option>クラウド導入支援</option>
+            <option>運用・保守・内製化支援</option>
+            <option>その他</option>
+          </select>
+          <span class="err" data-for="cf-topic"></span>
+        </div>
+        <div class="field">
+          <label for="cf-msg">お問い合わせ内容</label>
+          <textarea id="cf-msg" name="message" rows="4"></textarea>
+          <span class="err" data-for="cf-msg"></span>
+        </div>
+        <button type="submit" class="form-submit">送信する</button>
+        <p class="form-note">送信内容は、お問い合わせ対応の目的にのみ利用します。</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <a class="brand" href="#top" style="font-size:1.1rem"><span class="mark"></span>NexaWorks</a>
+        <p style="max-width:30ch;margin-top:14px;font-size:.9rem;color:var(--ink-faint)">業務理解に根ざしたシステム開発とDX支援。</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>事業</h4>
+          <a href="#services">業務システム開発</a>
+          <a href="#services">DX推進支援</a>
+          <a href="#services">クラウド導入支援</a>
+        </div>
+        <div class="foot-col">
+          <h4>会社</h4>
+          <a href="#company">会社概要</a>
+          <a href="#cases">導入事例</a>
+          <a href="#news">お知らせ</a>
+        </div>
+        <div class="foot-col">
+          <h4>お問い合わせ</h4>
+          <a href="#contact">無料相談</a>
+          <a href="#contact">採用について</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; 2026 NexaWorks株式会社</span>
+      <span>プライバシーポリシー / 利用規約</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // モバイルメニュー（簡易：ナビへスクロール）
+  document.getElementById('burger').addEventListener('click', function(){
+    document.getElementById('services').scrollIntoView({behavior:'smooth'});
+  });
+
+  // reveal on scroll（transform/opacity のみ）
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+
+  // フォームバリデーション（ラベルは上・エラーは下）
+  var form = document.getElementById('contactForm');
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var ok = true;
+    function setErr(id, msg){
+      var span = form.querySelector('.err[data-for="'+id+'"]');
+      span.textContent = msg || '';
+      if(msg) ok = false;
+    }
+    var company = document.getElementById('cf-company');
+    var name = document.getElementById('cf-name');
+    var email = document.getElementById('cf-email');
+    var topic = document.getElementById('cf-topic');
+    var msg = document.getElementById('cf-msg');
+    setErr('cf-company', company.value.trim() ? '' : '会社名を入力してください');
+    setErr('cf-name', name.value.trim() ? '' : 'お名前を入力してください');
+    var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    setErr('cf-email', emailOk ? '' : '正しいメールアドレスを入力してください');
+    setErr('cf-topic', topic.value ? '' : 'ご相談内容を選択してください');
+    setErr('cf-msg', msg.value.trim() ? '' : 'お問い合わせ内容を入力してください');
+    if(ok){
+      var btn = form.querySelector('.form-submit');
+      btn.textContent = '送信を受け付けました';
+      btn.disabled = true;
+    }
+  });
+</script>
+</body>
+</html>
